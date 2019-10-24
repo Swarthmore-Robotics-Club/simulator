@@ -34,13 +34,14 @@ class Robot(object):
         self._right_motor_vel += dt * (self._right_motor - self._right_motor_vel)
         self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
         
-        forward_vel = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
-        heading_vel = (self._left_motor_k * self._left_motor_vel - self._right_motor_k * self._right_motor_vel) * (1. / 2.)
+        self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
+        self._dheading = (self._left_motor_k * self._left_motor_vel - self._right_motor_k * self._right_motor_vel) * (1. / 2.)
 
-        self._x += dt * forward_vel * math.cos(self._heading)
-        self._y += dt * forward_vel * math.sin(self._heading)
-        self._heading += dt * heading_vel + 2. * math.pi
+        self._x += dt * self._dforward * math.cos(self._heading)
+        self._y += dt * self._dforward * math.sin(self._heading)
+        self._heading += dt * self._dheading + 2. * math.pi
         self._heading = math.fmod(self._heading, 2. * math.pi)
+        return
 
 class World(object):
     def __init__(self, robot):
