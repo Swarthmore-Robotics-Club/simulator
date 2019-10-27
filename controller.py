@@ -8,8 +8,6 @@ TWO_PI = 2 * math.pi
 headings = []
 xs = []
 ys = []
-leftmotors = []
-rightmotors = []
 pids = []
 class ExampleRobot(rb.Robot):
     def __init__(self):
@@ -49,7 +47,7 @@ class OptimusPrime(rb.Robot):
         rb.Robot.__init__(self)
         self.set_right_motor(0)
         self.set_left_motor(0)
-        self.pid = PIDLoop(0.1, 0, 0)
+        self.pid = PIDLoop(0.09, 0, 0)
         return
 
 
@@ -69,10 +67,12 @@ class OptimusPrime(rb.Robot):
         else:
             self.set_left_motor(0.0)
             self.set_right_motor(0.0)
-        print('pid: {:2.4}, x: {:2.4}, y: {:2.4}, heading: {:2.4}, left motor: {:2.4}, right motor: {:2.4}'.format(pid_result, x, y, heading, self._left_motor, self._right_motor))
-        global pids, headings
+
+        global pids, headings, xs, ys
         pids.append(pid_result)
         headings.append(heading)
+        xs.append(x)
+        ys.append(y)
         return
 
 
@@ -111,6 +111,20 @@ if __name__ == '__main__':
     except (Exception, KeyboardInterrupt) as e:
         print("\n\n\n", e, "\n\n\n", j)
     
-    plt.plot(headings, range(len(headings)))
+    fig = plt.figure()
+
+    plt.subplot(2, 2, 1)
+    plt.plot(range(len(headings)), headings)
+    print([index for index, el in enumerate(headings) if el > math.pi/2 - 0.01 and el < math.pi/2 + 0.01])
+
+    plt.subplot(2, 2, 2)
+    plt.plot(range(len(pids)), pids)
+
+    plt.subplot(2, 2, 3)
+    plt.plot(range(len(xs)), xs)
+
+    plt.subplot(2, 2, 4)
+    plt.plot(range(len(ys)), ys)
+
     plt.show()
 
