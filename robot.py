@@ -1,6 +1,6 @@
 import math
 
-class Robot(object):
+class Robot():
     def __init__(self):
         self._right_motor = 0.0
         self._left_motor = 0.0
@@ -35,7 +35,7 @@ class Robot(object):
         self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
         
         self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
-        self._dheading = (self._left_motor_k * self._left_motor_vel - self._right_motor_k * self._right_motor_vel) * (1. / 2.)
+        self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) * (1. / 2.)
 
         self._x += dt * self._dforward * math.cos(self._heading)
         self._y += dt * self._dforward * math.sin(self._heading)
@@ -43,7 +43,7 @@ class Robot(object):
         self._heading = math.fmod(self._heading, 2. * math.pi)
         return
 
-class World(object):
+class World():
     def __init__(self, robot):
         self.robot = robot
 
