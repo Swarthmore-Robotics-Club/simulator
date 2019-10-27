@@ -9,6 +9,8 @@ headings = []
 xs = []
 ys = []
 pids = []
+desired_angles = []
+
 class ExampleRobot(rb.Robot):
     def __init__(self):
         rb.Robot.__init__(self)
@@ -47,7 +49,8 @@ class OptimusPrime(rb.Robot):
         rb.Robot.__init__(self)
         self.set_right_motor(0)
         self.set_left_motor(0)
-        self.pid = PIDLoop(0.09, 0, 0)
+        self.pid = PIDLoop(0.065, 0, 0.05)
+        self.state = 0
         return
 
 
@@ -65,21 +68,34 @@ class OptimusPrime(rb.Robot):
             self.set_left_motor(self._left_motor + pid_result_proportion)
             self.set_right_motor(self._right_motor + abs(pid_result_proportion))
         else:
-            self.set_left_motor(0.0)
-            self.set_right_motor(0.0)
+            self.set_left_motor(1.0)
+            self.set_right_motor(1.0)
 
-        global pids, headings, xs, ys
+        global pids, headings, xs, ys, desired_angles
         pids.append(pid_result)
         headings.append(heading)
         xs.append(x)
         ys.append(y)
+        desired_angles.append(desired_angle)
         return
 
 
     def get_desired_angle(self, x, y):
-        if x < 1 and y < 2: # starting
+        if x < 1 and y <= 2: # starting, go up
             return math.pi / 2
-        raise Exception()
+        elif x < 1.5: # go right
+            if self.state == 0:
+                self.state = 1
+                self.set_left_motor(0)
+                self.set_right_motor(0)
+            return 0
+        elif x >= 1.5 and y > 0: # go down
+            if self.state == 1:
+                self.state = 2
+                self.set_left_motor(0)
+                self.set_right_motor(0)
+            return 1.5 * math.pi
+        raise Exception('We done here.')
 
 
 class PIDLoop():
@@ -105,26 +121,21 @@ if __name__ == '__main__':
 
     try:
         j = 0
-        for i in range(1000):
+        for i in range(2000):
             j += 1
             world.loop(0.01)
     except (Exception, KeyboardInterrupt) as e:
-        print("\n\n\n", e, "\n\n\n", j)
+        print('\n\n\n', e, '\n\n\n', j)
     
     fig = plt.figure()
 
-    plt.subplot(2, 2, 1)
+    plt.subplot(1, 2, 1)
     plt.plot(range(len(headings)), headings)
-    print([index for index, el in enumerate(headings) if el > math.pi/2 - 0.01 and el < math.pi/2 + 0.01])
+    plt.plot(range(len(desired_angles)), desired_angles)
 
-    plt.subplot(2, 2, 2)
-    plt.plot(range(len(pids)), pids)
-
-    plt.subplot(2, 2, 3)
-    plt.plot(range(len(xs)), xs)
-
-    plt.subplot(2, 2, 4)
-    plt.plot(range(len(ys)), ys)
+    plt.subplot(1, 2, 2)
+    plt.plot(xs, ys)
+    plt.plot([0.4, 0.4, 1.6, 1.6], [0, 2.6, 2.6, 0], color='gray') # inner wall
+    plt.plot([-0.1, -0.1, 2.1, 2.1], [0, 3.1, 3.1, 0], color='gray') # outer wall
 
     plt.show()
-
