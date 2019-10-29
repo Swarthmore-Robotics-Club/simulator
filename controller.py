@@ -2,7 +2,8 @@ import robot as rb
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-
+from robots import StraightAsASpagghetti
+import maze 
 
 TWO_PI = 2 * math.pi
 headings = []
@@ -20,25 +21,6 @@ class ExampleRobot(rb.Robot):
     def loop(self, dt):
         print('x: {}, y: {}, heading: {}'.format(self.get_x(), self.get_y(), self.get_heading()))
 
-
-"""
-Goes straight. Yay.
-"""
-class StraightAsASpaghetti(rb.Robot):
-    def __init__(self):
-        rb.Robot.__init__(self)
-        self.set_right_motor(0)
-        self.set_left_motor(0)
-        return
-    
-    def loop(self, dt):
-        x = self.get_x()
-        y = self.get_y()
-        heading = self.get_heading()
-        self.set_right_motor(1)
-        self.set_left_motor(1)
-        print('x: {:2.4}, y: {:2.4}, heading: {:2.4}'.format(x, y, heading))
-        return
 
 
 """
@@ -62,6 +44,7 @@ class OptimusPrime(rb.Robot):
         pid_result = self.pid.updateError(desired_angle - heading, dt)
         pid_result_proportion = pid_result / TWO_PI
         if pid_result > 0.001:
+            # incrementing motor values
             self.set_right_motor(self._right_motor - pid_result_proportion)
             self.set_left_motor(self._left_motor + pid_result_proportion)
         elif pid_result < -0.001:
@@ -97,6 +80,23 @@ class OptimusPrime(rb.Robot):
             return 1.5 * math.pi
         raise Exception('We done here.')
 
+"""
+starts at 0,0 facing East. Wants to check where it can go. Goal is at 2,0
+"""
+class WallE(rb.Robot):
+    def __init__(self, path):
+        rb.Robot.__init__(self)
+        self.set_right_motor(0)
+        self.set_left_motor(0)
+        self.pid = PIDLoop(0.065, 0, 0.05)
+        self.state = 0
+        self.maze = maze.BottomLeftMaze(path)
+        
+        return
+
+    def loop(self, dt):
+        pass
+    
 
 class PIDLoop():
     def __init__(self, kP, kI, kD):
