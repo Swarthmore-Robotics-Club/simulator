@@ -13,7 +13,7 @@ class Robot():
         self._heading = 0.0
 
     def loop(self, dt):
-        pass
+        return
 
     def set_right_motor(self, value):
         self._right_motor = max(min(value, 1.0), -1.0)
@@ -30,6 +30,9 @@ class Robot():
     def get_heading(self):
         return self._heading
 
+    def print_graphs(self):
+        return
+
     def _integrate_motors(self, dt):
         self._right_motor_vel += dt * (self._right_motor - self._right_motor_vel)
         self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
@@ -43,10 +46,3 @@ class Robot():
         self._heading = math.fmod(self._heading, 2. * math.pi)
         return
 
-class World():
-    def __init__(self, robot):
-        self.robot = robot
-
-    def loop(self, dt):
-        self.robot.loop(dt)
-        self.robot._integrate_motors(dt)
