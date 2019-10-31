@@ -1,4 +1,4 @@
-from robot import Robot
+from Robot import Robot
 
 """
 Goes straight. Yay.

@@ -1,13 +1,11 @@
-from maze import Maze
+from Maze import Maze
 
-OPEN_CELL = '#'
-WALL = '-'
+OPEN_CELL = '.'
+WALL = '#'
 
 class BottomLeftMaze(Maze):
     def __init__(self, path):
-        """
-        Given a file path, creates a maze
-        """
+        Maze.__init__(self)
         with open(path) as f:
             self.maze =  [ [ cell for cell in row.rstrip() ] for row in f ]
             self.maze = self.maze[::-1]

@@ -1,9 +1,4 @@
 class Maze():
-    def __init__(self, path):
-        self.maze = []
-        return
-
-
     def can_up(self, x, y):
         return False
 

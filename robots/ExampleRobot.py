@@ -1,4 +1,5 @@
-import robot as rb
+import Robot as rb
+
 class ExampleRobot(rb.Robot):
     def __init__(self):
         rb.Robot.__init__(self)

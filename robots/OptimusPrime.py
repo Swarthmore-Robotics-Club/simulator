@@ -1,8 +1,7 @@
 import math
 import matplotlib.pyplot as plt
-import numpy as np
 from PIDLoop import PIDLoop
-from robot import Robot
+from Robot import Robot
 
 TWO_PI = 2 * math.pi
 
@@ -18,10 +17,9 @@ class OptimusPrime(Robot):
         self.state = 0
 
         self.headings = []
+        self.desired_angles = []
         self.xs = []
         self.ys = []
-        self.pids = []
-        self.desired_angles = []
         return
 
 
@@ -42,11 +40,10 @@ class OptimusPrime(Robot):
             self.set_left_motor(1.0)
             self.set_right_motor(1.0)
 
-        self.pids.append(pid_result)
         self.headings.append(heading)
+        self.desired_angles.append(desired_angle)
         self.xs.append(x)
         self.ys.append(y)
-        self.desired_angles.append(desired_angle)
         return
 
 
