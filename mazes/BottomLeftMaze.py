@@ -9,32 +9,30 @@ class BottomLeftMaze(Maze):
         with open(path) as f:
             self.maze =  [ [ cell for cell in row.rstrip() ] for row in f ]
             self.maze = self.maze[::-1]
+        self._max_x = len(self.maze[0]) - 1
+        self._max_y = len(self.maze) - 1
         return
 
 
     def can_up(self, x, y):
-        try:
-            return self.maze[x][y-1] == OPEN_CELL
-        except:
+        if x < 0 or x > self._max_x or y < 0 or y > (self._max_y - 1):
             return False
+        return self.maze[y + 1][x] == OPEN_CELL
 
 
     def can_left(self, x, y):
-        try:
-            return self.maze[x-1][y] == OPEN_CELL
-        except:
+        if x < 1 or x > self._max_x or y < 0 or y > self._max_y:
             return False
+        return self.maze[y][x - 1] == OPEN_CELL
 
 
     def can_right(self, x, y):
-        try:
-            return self.maze[x+1][y] == OPEN_CELL
-        except:
+        if x < 0 or x > (self._max_x - 1) or y < 0 or y > self._max_y:
             return False
+        return self.maze[y][x + 1] == OPEN_CELL
 
 
     def can_down(self, x, y):
-        try:
-            return self.maze[x][y + 1] == OPEN_CELL
-        except:
+        if x < 0 or x > self._max_x or y < 1 or y > self._max_y:
             return False
+        return self.maze[y - 1][x] == OPEN_CELL

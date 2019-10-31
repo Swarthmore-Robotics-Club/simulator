@@ -51,10 +51,8 @@ class WallE(Robot):
 
         plt.subplot(1, 2, 2)
         plt.plot(self.xs, self.ys)
-
-        n = len(self.maze.maze)
-        for x in range(n):
-            for y in range(n):
+        for y in range(len(self.maze.maze)):
+            for x in range(len(self.maze.maze[y])):
                 if not self.maze.can_down(x, y):
                     plt.plot([x, x + 1], [y, y], color='gray')
                 if not self.maze.can_left(x, y):
