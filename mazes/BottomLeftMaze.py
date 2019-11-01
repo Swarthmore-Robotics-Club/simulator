@@ -36,3 +36,7 @@ class BottomLeftMaze(Maze):
         if x < 0 or x > self._max_x or y < 1 or y > self._max_y:
             return False
         return self.maze[y - 1][x] == OPEN_CELL
+
+
+    def get_goal(self):
+        return (self._max_x + 0.5, self._max_y + 0.5)
