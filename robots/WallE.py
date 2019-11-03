@@ -12,27 +12,36 @@ starts at 0.5, 0.5 facing East. Wants to check where it can go. Goal is top righ
 class WallE(Robot):
     def __init__(self, maze):
         Robot.__init__(self)
-        self.set_right_motor(0)
-        self.set_left_motor(0)
-        self.pid = PIDLoop(0.065, 0, 0.05)
-        self.state = 0
         self.maze = maze
         self.goal = self.maze.get_goal()
         self.next_cell = None
         self.already_visited = set()
+        self.headings = []
+        self.desired_angles = []
+        self.xs = []
+        self.ys = []
+
+        # next 2 lines have hardcoded floats that should be played with
+        self.angle_pid = PIDLoop(5, 0, 0)
+        self.power_val = 3
+
+        # next 3 lines should be set w/ our real params
+        self.wheel_radius = 0.02 # meters
+        self.wheel_base_length = 0.08 # meters
+        self.max_vel = 0.3 # m/s
 
         # next 2 lines are hacky way to set the initial position appropriately
         # don't want to set in Robot.py because that screws up earlier bots
         self._x = 0.5
         self._y = 0.5
-
-
-        self.headings = []
-        self.desired_angles = []
-        self.xs = []
-        self.ys = []
         return
 
+    """
+    TODO: think the problem is l_vel and r_vel are almost always well above 1 or below -1 so their changes
+    aren't captured by our .setmotor() - might have been fixed by get_individual_proportions()
+
+    TODO: can't seem to turn right directly - see current graphss
+    """
     def loop(self, dt):
         x = self.get_x()
         y = self.get_y()
@@ -40,22 +49,28 @@ class WallE(Robot):
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
         desired_angle = self.get_desired_angle(x, y)
+        angular_vel = self.angle_pid.updateErrorPlus(desired_angle - heading, dt)
+        vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
+        l_vel, r_vel = self.get_individual_proportions(vel, angular_vel)
+        print('angular vel: {:2.4}, nextcell: {}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, self.next_cell, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
+        self.set_left_motor(l_vel)
+        self.set_right_motor(r_vel)
         self.headings.append(heading)
         self.desired_angles.append(desired_angle)
         self.xs.append(x)
         self.ys.append(y)
         return
 
+
     def get_desired_angle(self, x, y):
         if self.next_cell:
-            acceptable_offset = 0.05
+            acceptable_offset = 0.1
             desired_x = self.next_cell[0]
             desired_y = self.next_cell[1]
-            if desired_x - acceptable_offset <= x <= desired_x + acceptable_offset:
-                if desired_y - acceptable_offset <= y <= desired_y + acceptable_offset:
-                    if desired_x == self.goal[0] and desired_y == self.goal[1]:
-                        raise Exception('We done here', self.goal, x, y)
-                    self.next_cell = None
+            if abs(desired_x - x) <= acceptable_offset and abs(desired_y - y) <= acceptable_offset:
+                if desired_x == self.goal[0] and desired_y == self.goal[1]:
+                    raise Exception('We done here', self.goal, x, y)
+                self.next_cell = None
         if not self.next_cell:
             options = []
             """
@@ -82,11 +97,32 @@ class WallE(Robot):
                     break
             if not self.next_cell:
                 self.next_cell = random.choice(options)
-            print(self.next_cell)
+            print('Next cell: ', self.next_cell)
         arctan = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
         if arctan < 0:
             arctan += TWO_PI
         return arctan
+
+
+    def get_individual_proportions(self, vel, a_vel):
+        l_vel, r_vel = self.unicycle_to_differential_drive(vel, a_vel)
+        m = max(abs(l_vel), abs(r_vel))
+        return l_vel / m, r_vel / m
+
+
+    """
+    velocity -> forward velocity, m/s
+    angular_velocity > angular velocity, radians/s
+    
+    @returns left and right wheel velocities (in m/s?)
+    see http://faculty.salina.k-state.edu/tim/robotics_sg/Control/kinematics/unicycle.html
+    """
+    def unicycle_to_differential_drive(self, velocity, angular_velocity):
+        radius = self.wheel_radius
+        length = self.wheel_base_length
+        left_vel = (2 * velocity - angular_velocity * length) / (2 * radius)
+        right_vel = (2 * velocity + angular_velocity * length) / (2 * radius)
+        return left_vel, right_vel
 
 
     def print_graphs(self):
