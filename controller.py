@@ -10,11 +10,10 @@ dt = 0.01
 
 try:
     j = 0
-    for i in range(8000):
+    while True:
         j += 1
         robot.loop(dt)
         robot._integrate_motors(dt)
-        print(j)
 except (Exception, KeyboardInterrupt) as e:
     print('\n\n\n', e, '\n\n\n', j)
 

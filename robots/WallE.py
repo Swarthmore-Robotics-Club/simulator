@@ -23,7 +23,7 @@ class WallE(Robot):
 
         # next 2 lines have hardcoded floats that should be played with
         self.angle_pid = PIDLoop(5, 0, 0)
-        self.power_val = 3
+        self.power_val = 2
 
         # next 3 lines should be set w/ our real params
         self.wheel_radius = 0.02 # meters
@@ -45,13 +45,12 @@ class WallE(Robot):
     def loop(self, dt):
         x = self.get_x()
         y = self.get_y()
-
         if x < -1 or y < -1 or y > self.maze._max_y + 2 or x > self.maze._max_x + 2:
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
-        # depending on where we are on the maze, we want to change our desired angle
+        if heading > 3 * math.pi / 2:
+            heading -= 2 * math.pi
         desired_angle = self.get_desired_angle(x, y)
-        # get the error in our angluar velocity using PID, maybe want to 
         angular_vel = self.angle_pid.updateErrorPlus(desired_angle - heading, dt) 
 
         vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
@@ -67,15 +66,8 @@ class WallE(Robot):
 
 
     def get_desired_angle(self, x, y):
-        """
-            given the robot's position and its final goal, returns the angle that
-            theoretically would get the robot closer to its goal
-        """
-
-
         if self.next_cell:
             acceptable_offset = 0.1
-            # acceptable_offset = .04
             desired_x = self.next_cell[0]
             desired_y = self.next_cell[1]
             if abs(desired_x - x) <= acceptable_offset and abs(desired_y - y) <= acceptable_offset:
@@ -111,14 +103,10 @@ class WallE(Robot):
                 self.next_cell = random.choice(options)
             print('Next cell: ', self.next_cell)
         
-
         arctan = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
-
-        #  if arctan is negative and not in the lower right quadrant, we want to rotate right
-        # TODO SEE IF KEEPING ATAN NEGATIVE IN LOWER 4TH QUADRANT IS GOOD
-        if arctan < 0 and not arctan >= (3/2) * TWO_PI and not arctan < TWO_PI:
+        # if arctan is in bottom left quadrant, we want to rotate left (have positive arctan val)
+        if arctan < -math.pi/2:
             arctan += TWO_PI
-
         return arctan
 
 
