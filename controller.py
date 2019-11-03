@@ -10,7 +10,7 @@ dt = 0.01
 
 try:
     j = 0
-    for i in range(2000):
+    for i in range(8000):
         j += 1
         robot.loop(dt)
         robot._integrate_motors(dt)

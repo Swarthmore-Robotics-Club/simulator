@@ -9,6 +9,7 @@ class PIDLoop():
         return
     
     def updateError(self, error, dt):
+        # all negative 
         old_error = self.p_error
         self.p_error = error
         self.i_error = (self.i_error + error * dt) if error != 0 else 0

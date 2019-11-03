@@ -45,11 +45,15 @@ class WallE(Robot):
     def loop(self, dt):
         x = self.get_x()
         y = self.get_y()
+
         if x < -1 or y < -1 or y > self.maze._max_y + 2 or x > self.maze._max_x + 2:
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
+        # depending on where we are on the maze, we want to change our desired angle
         desired_angle = self.get_desired_angle(x, y)
-        angular_vel = self.angle_pid.updateErrorPlus(desired_angle - heading, dt)
+        # get the error in our angluar velocity using PID, maybe want to 
+        angular_vel = self.angle_pid.updateErrorPlus(desired_angle - heading, dt) 
+
         vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
         l_vel, r_vel = self.get_individual_proportions(vel, angular_vel)
         print('angular vel: {:2.4}, nextcell: {}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, self.next_cell, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
@@ -63,14 +67,22 @@ class WallE(Robot):
 
 
     def get_desired_angle(self, x, y):
+        """
+            given the robot's position and its final goal, returns the angle that
+            theoretically would get the robot closer to its goal
+        """
+
+
         if self.next_cell:
             acceptable_offset = 0.1
+            # acceptable_offset = .04
             desired_x = self.next_cell[0]
             desired_y = self.next_cell[1]
             if abs(desired_x - x) <= acceptable_offset and abs(desired_y - y) <= acceptable_offset:
                 if desired_x == self.goal[0] and desired_y == self.goal[1]:
                     raise Exception('We done here', self.goal, x, y)
                 self.next_cell = None
+
         if not self.next_cell:
             options = []
             """
@@ -98,9 +110,15 @@ class WallE(Robot):
             if not self.next_cell:
                 self.next_cell = random.choice(options)
             print('Next cell: ', self.next_cell)
+        
+
         arctan = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
-        if arctan < 0:
+
+        #  if arctan is negative and not in the lower right quadrant, we want to rotate right
+        # TODO SEE IF KEEPING ATAN NEGATIVE IN LOWER 4TH QUADRANT IS GOOD
+        if arctan < 0 and not arctan >= (3/2) * TWO_PI and not arctan < TWO_PI:
             arctan += TWO_PI
+
         return arctan
 
 
