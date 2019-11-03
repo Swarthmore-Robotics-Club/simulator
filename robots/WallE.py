@@ -22,7 +22,7 @@ class WallE(Robot):
         self.ys = []
 
         # next 2 lines have hardcoded floats that should be played with
-        self.angle_pid = PIDLoop(5, 0, 0)
+        self.angle_pid = PIDLoop(5, 0, 0.45)
         self.power_val = 2
 
         # next 3 lines should be set w/ our real params
@@ -36,12 +36,7 @@ class WallE(Robot):
         self._y = 0.5
         return
 
-    """
-    TODO: think the problem is l_vel and r_vel are almost always well above 1 or below -1 so their changes
-    aren't captured by our .setmotor() - might have been fixed by get_individual_proportions()
 
-    TODO: can't seem to turn right directly - see current graphss
-    """
     def loop(self, dt):
         x = self.get_x()
         y = self.get_y()

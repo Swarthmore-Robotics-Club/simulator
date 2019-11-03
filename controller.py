@@ -1,7 +1,7 @@
 import sys
 sys.path.append('robots')
 sys.path.append('mazes')
-from mazes.BottomLeftMaze import BottomLeftMaze
+from mazes.Maze import Maze
 from WallE import WallE
 
 maze = BottomLeftMaze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
