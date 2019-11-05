@@ -43,10 +43,13 @@ class WallE(Robot):
         if x < -1 or y < -1 or y > self.maze._max_y + 2 or x > self.maze._max_x + 2:
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
-        if heading > 3 * math.pi / 2:
+        if heading > math.pi:
             heading -= 2 * math.pi
         desired_angle = self.get_desired_angle(x, y)
-        angular_vel = self.angle_pid.updateErrorPlus(desired_angle - heading, dt) 
+        angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
+        if angle_error > math.pi:
+            pass
+        angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
 
         vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
         l_vel, r_vel = self.get_individual_proportions(vel, angular_vel)
@@ -98,11 +101,7 @@ class WallE(Robot):
                 self.next_cell = random.choice(options)
             print('Next cell: ', self.next_cell)
         
-        arctan = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
-        # if arctan is in bottom left quadrant, we want to rotate left (have positive arctan val)
-        if arctan < -math.pi/2:
-            arctan += TWO_PI
-        return arctan
+        return math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
 
 
     def get_individual_proportions(self, vel, a_vel):

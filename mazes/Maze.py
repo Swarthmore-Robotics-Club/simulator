@@ -6,7 +6,6 @@ WALL = '#'
 """
 class Maze():
     def __init__(self, path):
-        Maze.__init__(self)
         with open(path) as f:
             self.maze =  [ [ cell for cell in row.rstrip() ] for row in f ]
             self.maze = self.maze[::-1]

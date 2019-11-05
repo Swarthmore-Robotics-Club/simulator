@@ -4,7 +4,7 @@ sys.path.append('mazes')
 from mazes.Maze import Maze
 from WallE import WallE
 
-maze = BottomLeftMaze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
+maze = Maze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
 robot = WallE(maze)
 dt = 0.01
 
