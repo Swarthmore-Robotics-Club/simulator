@@ -2,7 +2,7 @@ OPEN_CELL = '.'
 WALL = '#'
 
 """
-0,0 is bottom left
+0,0 is bottom left, goal is top right
 """
 class Maze():
     def __init__(self, path):

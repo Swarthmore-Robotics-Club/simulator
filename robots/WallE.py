@@ -1,6 +1,6 @@
 import math
 import matplotlib.pyplot as plt
-import random
+from DFS import DFS
 from PIDLoop import PIDLoop
 from Robot import Robot
 
@@ -13,16 +13,14 @@ class WallE(Robot):
     def __init__(self, maze):
         Robot.__init__(self)
         self.maze = maze
-        self.goal = self.maze.get_goal()
-        self.next_cell = None
-        self.already_visited = set()
+        self.dfs = DFS(self.maze, self.maze.get_goal())
         self.headings = []
         self.desired_angles = []
         self.xs = []
         self.ys = []
 
         # next 2 lines have hardcoded floats that should be played with
-        self.angle_pid = PIDLoop(5, 0, 0.45)
+        self.angle_pid = PIDLoop(5, 0, 0.5)
         self.power_val = 2
 
         # next 3 lines should be set w/ our real params
@@ -48,12 +46,14 @@ class WallE(Robot):
         desired_angle = self.get_desired_angle(x, y)
         angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
         if angle_error > math.pi:
-            pass
+            angle_error -= TWO_PI
+        elif angle_error < -math.pi:
+            angle_error += TWO_PI
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
 
         vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
         l_vel, r_vel = self.get_individual_proportions(vel, angular_vel)
-        print('angular vel: {:2.4}, nextcell: {}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, self.next_cell, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
+        # print('angular vel: {:2.4}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
         self.headings.append(heading)
@@ -64,44 +64,9 @@ class WallE(Robot):
 
 
     def get_desired_angle(self, x, y):
-        if self.next_cell:
-            acceptable_offset = 0.1
-            desired_x = self.next_cell[0]
-            desired_y = self.next_cell[1]
-            if abs(desired_x - x) <= acceptable_offset and abs(desired_y - y) <= acceptable_offset:
-                if desired_x == self.goal[0] and desired_y == self.goal[1]:
-                    raise Exception('We done here', self.goal, x, y)
-                self.next_cell = None
-
-        if not self.next_cell:
-            options = []
-            """
-            Floor x and y because while we're aiming for the center of each square
-            i.e. x and y offset at x.5 and y.5, the maze thinks of an entire square
-            as defined by it's lower left point
-            """
-            floor_x = math.floor(x)
-            perfect_x = floor_x + .5
-            floor_y = math.floor(y)
-            perfect_y = floor_y + .5
-            if self.maze.can_up(floor_x, floor_y):
-                options.append((perfect_x, perfect_y + 1))
-            if self.maze.can_right(floor_x, floor_y):
-                options.append((perfect_x + 1, perfect_y))
-            if self.maze.can_down(floor_x, floor_y):
-                options.append((perfect_x, perfect_y - 1))
-            if self.maze.can_left(floor_x, floor_y):
-                options.append((perfect_x - 1, perfect_y))
-            for option in options:
-                if option not in self.already_visited:
-                    self.already_visited.add(option)
-                    self.next_cell = option
-                    break
-            if not self.next_cell:
-                self.next_cell = random.choice(options)
-            print('Next cell: ', self.next_cell)
-        
-        return math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
+        next_cell = self.dfs.get_next_cell(x, y)
+        arctan = math.atan2(next_cell[1] - y, next_cell[0] - x)
+        return arctan
 
 
     def get_individual_proportions(self, vel, a_vel):
@@ -135,6 +100,7 @@ class WallE(Robot):
         plt.subplot(1, 2, 2)
         plt.plot(self.xs, self.ys)
         for y in range(len(self.maze.maze)):
+            print(y)
             for x in range(len(self.maze.maze[y])):
                 if not self.maze.can_down(x, y):
                     plt.plot([x, x + 1], [y, y], color='gray')
