@@ -13,11 +13,12 @@ class WallE(Robot):
     def __init__(self, maze):
         Robot.__init__(self)
         self.maze = maze
-        self.dfs = DFS(self.maze, self.maze.get_goal())
+        self.dfs = DFS(self.maze, self.maze.get_goal(), self.set_race_start)
         self.headings = []
         self.desired_angles = []
         self.xs = []
         self.ys = []
+        self.race_start = 0
 
         # next 2 lines have hardcoded floats that should be played with
         self.angle_pid = PIDLoop(5, 0, 0.5)
@@ -32,6 +33,11 @@ class WallE(Robot):
         # don't want to set in Robot.py because that screws up earlier bots
         self._x = 0.5
         self._y = 0.5
+        return
+
+
+    def set_race_start(self):
+        self.race_start = len(self.xs)
         return
 
 
@@ -92,13 +98,14 @@ class WallE(Robot):
 
     def print_graphs(self):
         fig = plt.figure()
-
+        print('Number iterations in final run: {:,}'.format(len(self.xs) - self.race_start))
         plt.subplot(1, 2, 1)
         plt.plot(range(len(self.headings)), self.headings)
         plt.plot(range(len(self.desired_angles)), self.desired_angles)
 
         plt.subplot(1, 2, 2)
-        plt.plot(self.xs, self.ys)
+        plt.plot(self.xs[:self.race_start], self.ys[:self.race_start], color='lightblue')
+        plt.plot(self.xs[self.race_start:], self.ys[self.race_start:], color='midnightblue')
         for y in range(len(self.maze.maze)):
             print(y)
             for x in range(len(self.maze.maze[y])):

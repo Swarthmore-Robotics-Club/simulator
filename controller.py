@@ -2,7 +2,7 @@ import sys
 sys.path.append('robots')
 sys.path.append('mazes')
 from mazes.Maze import Maze
-from WallE import WallE
+from robots.WallE import WallE
 
 maze = Maze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
 robot = WallE(maze)
@@ -15,6 +15,6 @@ try:
         robot.loop(dt)
         robot._integrate_motors(dt)
 except (Exception, KeyboardInterrupt) as e:
-    print('\n\n\n', e, '\n\n\n', j)
+    print('\n\n', e, '\n\nj: {:,}'.format(j))
 
 robot.print_graphs()

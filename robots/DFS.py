@@ -1,15 +1,17 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 import math
 
 class DFS():
-    def __init__(self, maze, goal, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
+    def __init__(self, maze, goal, f, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
         self.goal = goal
         self.maze = maze
+        self.f = f
         self.acceptable_offset = acceptable_offset
         self.already_visited = set([starting_loc])
         self.graph = defaultdict(set)
         self.stack = []
         self.next_cell = None # tuple
+        self.state = 0
         return
     
     
@@ -41,11 +43,19 @@ class DFS():
         desired_x, desired_y = self.next_cell
         if abs(desired_x - x) > self.acceptable_offset or abs(desired_y - y) > self.acceptable_offset:
             return self.next_cell
-        if desired_x == self.goal[0] and desired_y == self.goal[1]:
+        if self.state == 2 and desired_x == self.goal[0] and desired_y == self.goal[1]:
             raise Exception('We done here', self.goal, x, y)
         self.add_current_cell(self.next_cell)
         if len(self.stack) == 0:
-            raise Exception('We had an empty stack but hadn\'t hit goal yet', x, y, '\n\n', self.graph)
+            if self.state == 0:
+                self.stack.append((0.5, 0.5))
+                self.state = 1
+            elif self.state == 1:
+                self.stack.append(self.goal)
+                self.f()
+                self.state = 2
+            else:
+                raise Exception('We had an empty stack but hadn\'t finished yet', x, y, '\n\n', self.graph)
 
         if not self.is_adjacent(self.next_cell, self.stack[-1]):
             p = self.find_shortest_path(self.next_cell, self.stack[-1])[::-1]
@@ -59,14 +69,39 @@ class DFS():
         return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]) == 1
 
 
-    def find_shortest_path(self, start, end, path=[]):
-        path = path + [start]
-        if start == end:
-            return path
-        shortest = None
-        for node in self.graph[start]:
-            if node not in path:
-                newpath = self.find_shortest_path(node, end, path)
-                if newpath and (not shortest or len(newpath) < len(shortest)):
-                    shortest = newpath
-        return shortest
+    def find_shortest_path(self, start, end):
+        nodes_to_visit = {start}
+        visited_nodes = set()
+        distance_from_start = defaultdict(lambda: float('inf'))
+        distance_from_start[start] = 0
+        tentative_parents = {}
+
+        while nodes_to_visit:
+            current = min([(distance_from_start[node], node) for node in nodes_to_visit])[1]
+            if current == end:
+                break
+
+            nodes_to_visit.discard(current)
+            visited_nodes.add(current)
+
+            for neighbour in self.graph[current]:
+                if neighbour in visited_nodes:
+                    continue
+                neighbour_distance = distance_from_start[current] + 1
+                if neighbour_distance < distance_from_start[neighbour]:
+                    distance_from_start[neighbour] = neighbour_distance
+                    tentative_parents[neighbour] = current
+                    nodes_to_visit.add(neighbour)
+
+        return self._deconstruct_path(tentative_parents, end)
+
+
+    def _deconstruct_path(self, tentative_parents, end):
+        if end not in tentative_parents:
+            return None
+        cursor = end
+        path = []
+        while cursor:
+            path.append(cursor)
+            cursor = tentative_parents.get(cursor)
+        return list(reversed(path))
