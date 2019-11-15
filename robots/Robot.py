@@ -11,15 +11,19 @@ class Robot():
         self._x = 0.0
         self._y = 0.0
         self._heading = 0.0
+        self.max_vel = 1
+        self.min_vel = -1
 
     def loop(self, dt):
         return
 
     def set_right_motor(self, value):
-        self._right_motor = max(min(value, 1.0), -1.0)
+        self._right_motor_vel = max(min(value, self.max_vel), self.min_vel)
+
+        
     
     def set_left_motor(self, value):
-        self._left_motor = max(min(value, 1.0), -1.0)
+        self._left_motor_vel = max(min(value, self.max_vel), self.min_vel)
 
     def get_x(self):
         return self._x
@@ -34,11 +38,12 @@ class Robot():
         return
 
     def _integrate_motors(self, dt):
-        self._right_motor_vel += dt * (self._right_motor - self._right_motor_vel)
-        self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
+        # self._right_motor_vel += dt * (self._right_motor - self._right_motor_vel)
+        # self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
         
         self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
         self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) * (1. / 2.)
+
 
         self._x += dt * self._dforward * math.cos(self._heading)
         self._y += dt * self._dforward * math.sin(self._heading)

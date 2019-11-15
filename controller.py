@@ -6,7 +6,7 @@ from robots.WallE import WallE
 from robots.TheVisibleHand import TheVisibleHand
 
 maze = Maze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
-robot = TheVisibleHand(maze)
+robot = WallE(maze)
 dt = 0.01
 
 try:

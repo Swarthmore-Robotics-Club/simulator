@@ -59,7 +59,7 @@ class WallE(Robot):
 
         vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 pretty fast as angular_vel increases, turn slowly
         l_vel, r_vel = self.get_individual_proportions(vel, angular_vel)
-        # print('angular vel: {:2.4}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
+        print('angular vel: {:2.4}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(angular_vel, l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
         self.headings.append(heading)
