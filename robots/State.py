@@ -1,8 +1,9 @@
 from enum import Enum
-from robots import PIDLoop
+from robots.PIDLoop import PIDLoop
+from robots.DFS import DFS
 import math
 
-
+TWO_PI = math.pi * 2
 class BigBrother(Enum):
     NOT_ENOUGH_TAXES = 3
     GREAT_LEAP_FORWARD = 1984
@@ -10,14 +11,8 @@ class BigBrother(Enum):
 
 
 
-"""
-Three things here
-
-
-"""
-
 class TheParty():
-    def __init__(self):
+    def __init__(self, maze):
         self.state = BigBrother.NOT_ENOUGH_TAXES
         self.next_cell = None # tuple
 
@@ -32,61 +27,67 @@ class TheParty():
 
         self.angle_ticker = 0
         self.vel_ticker = 0
-        
+        self.dfs = DFS(maze, maze.get_goal(), self.no_op)
+        return
+    
+    def no_op(self):
         return
 
-
-    def get_velocities(self, x, y, heading):
-
-        """
-            
-        """
+    def get_velocities(self, x, y, heading, dt):
+        THRESHOLD_VAL = .1
         if self.state == BigBrother.NOT_ENOUGH_TAXES:
             self.next_cell = self.get_next_cell(x, y)
             self.state = BigBrother.PRAGUE_SPRING
-        elif self.state == BigBrother.PRAGUE_SPRING:
-            
-            # want to get desired angle using given heading and knowing 
-            desired_angle = get_desired_angle( self.next_cell.x, self.next_cell.y)
-
-            THRESHOLD_VAL = .1
-            # if the difference of our heading is within our tick range
+        if self.state == BigBrother.PRAGUE_SPRING:
+            desired_angle = self.get_desired_angle(x, y)
             if abs(desired_angle - heading) < THRESHOLD_VAL:
-
+                print(self.angle_ticker)
                 if self.angle_ticker < 100:
                     self.angle_ticker += 1
                 else:
-                    # if we are in the ticker then we set the motors
+                    print('x: {:2.4}, y: {:2.4}, heading: {:2.4}'.format(x, y, heading))
                     self.angle_ticker = 0
-                    # return self.slow_down_comrade()
                     self.state = BigBrother.GREAT_LEAP_FORWARD
+            else:
+                self.angle_ticker = 0
+
+            # TODO: Refer to mortal notes to demistify this 
+            angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
+            if angle_error > math.pi:
+                angle_error -= TWO_PI
+            elif angle_error < -math.pi:
+                angle_error += TWO_PI
+            angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
+            # vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 
+            return self.get_individual_proportions(0, angular_vel)
+
+        if self.state == BigBrother.GREAT_LEAP_FORWARD:
+            print('')
+            if self.should_slow_down(x, y):
                 
-                    return (1,1)
-
-        elif self.state == BigBrother.GREAT_LEAP_FORWARD:
-            # LEAP FORWARD
-
-            if self.should_slow_down():
                 return self.slow_down_comrade()
 
-            return (1, 1)
-                    
-            
 
         return (1, 1)
 
-    
-    def straight_forward_leap(self):
-        pass
+
+    def get_desired_angle(self, x, y):
+        return math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
+
 
     def should_slow_down(self, x, y, THRESHOLD_VAL = .1):
-        return abs(self.next_cell[0] -x ) < THRESHOLD_VAL and abs(self.next_cell[1] - y) < THRESHOLD_VAL
+        return abs(self.next_cell[0] -x) < THRESHOLD_VAL and abs(self.next_cell[1] - y) < THRESHOLD_VAL
+
 
     def slow_down_comrade(self):
+        # TODO Make papa proud
+        self.state = BigBrother.NOT_ENOUGH_TAXES
         return (0,0)
 
-    def get_next_cell(self, x, y, maze = []):
-        return (1, 0)
+
+    def get_next_cell(self, x, y):
+        return self.dfs.get_next_cell(x, y)
+
 
     def get_individual_proportions(self, vel, a_vel):
         l_vel, r_vel = self.unicycle_to_differential_drive(vel, a_vel)
@@ -106,8 +107,3 @@ class TheParty():
         left_vel = (2 * velocity - angular_velocity * length) / (2 * radius)
         right_vel = (2 * velocity + angular_velocity * length) / (2 * radius)
         return left_vel, right_vel
-
-    def get_desired_angle(self, x, y):
-        next_cell = self.dfs.get_next_cell(x, y)
-        arctan = math.atan2(next_cell[1] - y, next_cell[0] - x)
-        return arctan

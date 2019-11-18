@@ -2,10 +2,10 @@ from collections import defaultdict, deque
 import math
 
 class DFS():
-    def __init__(self, maze, goal, f, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
+    def __init__(self, maze, goal, callback, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
         self.goal = goal
         self.maze = maze
-        self.f = f
+        self.callback = callback
         self.acceptable_offset = acceptable_offset
         self.already_visited = set([starting_loc])
         self.graph = defaultdict(set)
@@ -52,7 +52,7 @@ class DFS():
                 self.state = 1
             elif self.state == 1:
                 self.stack.append(self.goal)
-                self.f()
+                self.callback()
                 self.state = 2
             else:
                 raise Exception('We had an empty stack but hadn\'t finished yet', x, y, '\n\n', self.graph)
