@@ -35,7 +35,9 @@ class TheVisibleHand(Robot):
         l_vel, r_vel = self.peoples_liberation_front.get_velocities(x, y, heading, dt) 
         self.set_right_motor(r_vel)
         self.set_left_motor(l_vel)
-        print('desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4}'.format(l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
+        
+        # print('desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4} '.format(l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
+        # print(' diff: {:2.4}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4} '.format( abs(abs(r_vel) - abs(l_vel)),l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
         self.xs.append(x)
         self.ys.append(y)
         return

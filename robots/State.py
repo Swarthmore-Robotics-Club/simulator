@@ -17,7 +17,7 @@ class TheParty():
         self.next_cell = None # tuple
 
         # next 2 lines have hardcoded floats that should be played with
-        self.angle_pid = PIDLoop(5, 0, 0.5)
+        self.angle_pid = PIDLoop(5, 0, 0.1)
         self.power_val = 2
 
         # next 3 lines should be set w/ our real params
@@ -38,37 +38,31 @@ class TheParty():
         if self.state == BigBrother.NOT_ENOUGH_TAXES:
             self.next_cell = self.get_next_cell(x, y)
             self.state = BigBrother.PRAGUE_SPRING
+        desired_angle = self.get_desired_angle(x, y)
+        angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
+        if angle_error > math.pi:
+            angle_error -= TWO_PI
+        elif angle_error < -math.pi:
+            angle_error += TWO_PI
+        angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
         if self.state == BigBrother.PRAGUE_SPRING:
-            desired_angle = self.get_desired_angle(x, y)
+            print('real diff : {:2.4}'. format(abs(desired_angle - heading)))
             if abs(desired_angle - heading) < THRESHOLD_VAL:
-                print(self.angle_ticker)
                 if self.angle_ticker < 100:
                     self.angle_ticker += 1
                 else:
-                    print('x: {:2.4}, y: {:2.4}, heading: {:2.4}'.format(x, y, heading))
                     self.angle_ticker = 0
                     self.state = BigBrother.GREAT_LEAP_FORWARD
             else:
+                print('\tResetting angle ticker')
                 self.angle_ticker = 0
-
-            # TODO: Refer to mortal notes to demistify this 
-            angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
-            if angle_error > math.pi:
-                angle_error -= TWO_PI
-            elif angle_error < -math.pi:
-                angle_error += TWO_PI
-            angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
-            # vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0 
             return self.get_individual_proportions(0, angular_vel)
-
         if self.state == BigBrother.GREAT_LEAP_FORWARD:
-            print('')
-            if self.should_slow_down(x, y):
-                
+            if self.should_slow_down(x, y, THRESHOLD_VAL):
                 return self.slow_down_comrade()
-
-
-        return (1, 1)
+            vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val # drops to 0
+            return self.get_individual_proportions(vel, angular_vel)
+        raise Exception('ruh roh raggy')
 
 
     def get_desired_angle(self, x, y):
@@ -80,13 +74,15 @@ class TheParty():
 
 
     def slow_down_comrade(self):
-        # TODO Make papa proud
         self.state = BigBrother.NOT_ENOUGH_TAXES
         return (0,0)
 
 
     def get_next_cell(self, x, y):
-        return self.dfs.get_next_cell(x, y)
+
+        cell = self.dfs.get_next_cell(x, y)
+        print("hi we got a new cell mister here it is sire {}".format(cell))
+        return cell 
 
 
     def get_individual_proportions(self, vel, a_vel):
