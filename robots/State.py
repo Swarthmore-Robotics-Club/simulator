@@ -10,6 +10,13 @@ class BigBrother(Enum):
     PRAGUE_SPRING = 3300000
 
 
+# class MinistryOfTruth():
+
+#     def __init__(self):
+#         self.true_heading = 0
+#         self.true_x
+
+
 
 class TheParty():
     def __init__(self, maze):
@@ -28,6 +35,7 @@ class TheParty():
         self.angle_ticker = 0
         self.vel_ticker = 0
         self.dfs = DFS(maze, maze.get_goal(), self.no_op)
+        self.ministry_of_truth = (0.5 ,0.5, 0)
         return
     
     def no_op(self):
@@ -38,23 +46,22 @@ class TheParty():
         if self.state == BigBrother.NOT_ENOUGH_TAXES:
             self.next_cell = self.get_next_cell(x, y)
             self.state = BigBrother.PRAGUE_SPRING
-        desired_angle = self.get_desired_angle(x, y)
-        angle_error = desired_angle - heading # should be pos if we want to go left, neg otherwise
-        if angle_error > math.pi:
-            angle_error -= TWO_PI
-        elif angle_error < -math.pi:
-            angle_error += TWO_PI
+            
+        desired_angle = self.get_desired_angle(x, y, heading)
+        angle_error = desired_angle  # should be pos if we want to go left, neg otherwise
+        print("angle err {:2.4} curr_heading {:2.4}".format(angle_error, heading))
+
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
         if self.state == BigBrother.PRAGUE_SPRING:
-            print('real diff : {:2.4}'. format(abs(desired_angle - heading)))
-            if abs(desired_angle - heading) < THRESHOLD_VAL:
+            # print('real diff : {:2.4}'. format(abs(desired_angle - heading)))
+            if abs(angle_error) < THRESHOLD_VAL:
                 if self.angle_ticker < 100:
                     self.angle_ticker += 1
                 else:
                     self.angle_ticker = 0
                     self.state = BigBrother.GREAT_LEAP_FORWARD
             else:
-                print('\tResetting angle ticker')
+                # print('\tResetting angle ticker')
                 self.angle_ticker = 0
             return self.get_individual_proportions(0, angular_vel)
         if self.state == BigBrother.GREAT_LEAP_FORWARD:
@@ -65,8 +72,16 @@ class TheParty():
         raise Exception('ruh roh raggy')
 
 
-    def get_desired_angle(self, x, y):
-        return math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
+    def get_desired_angle(self, x, y, heading):
+
+        y_prime = self.next_cell[1] - y 
+        x_prime = self.next_cell[0] - x
+
+        x_transform = x_prime * math.cos(heading) - y_prime * math.sin(heading)
+        y_transform = y_prime * math.cos(heading) + x_prime * math.sin(heading)
+
+        shit = math.atan2(y_transform, x_transform)
+        return shit
 
 
     def should_slow_down(self, x, y, THRESHOLD_VAL = .1):
@@ -79,7 +94,6 @@ class TheParty():
 
 
     def get_next_cell(self, x, y):
-
         cell = self.dfs.get_next_cell(x, y)
         print("hi we got a new cell mister here it is sire {}".format(cell))
         return cell 

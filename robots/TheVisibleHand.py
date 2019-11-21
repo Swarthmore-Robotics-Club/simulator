@@ -28,8 +28,8 @@ class TheVisibleHand(Robot):
         if x < -1 or y < -1 or y > self.maze._max_y + 2 or x > self.maze._max_x + 2:
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
-        if heading > math.pi:
-            heading -= TWO_PI
+        # if heading > math.pi:
+        #     heading -= TWO_PI
 
         # now use our state to ask the Party what to do
         l_vel, r_vel = self.peoples_liberation_front.get_velocities(x, y, heading, dt) 
