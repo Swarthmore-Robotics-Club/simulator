@@ -28,8 +28,6 @@ class TheVisibleHand(Robot):
         if x < -1 or y < -1 or y > self.maze._max_y + 2 or x > self.maze._max_x + 2:
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
-        # if heading > math.pi:
-        #     heading -= TWO_PI
 
         # now use our state to ask the Party what to do
         l_vel, r_vel = self.peoples_liberation_front.get_velocities(x, y, heading, dt) 
@@ -37,12 +35,9 @@ class TheVisibleHand(Robot):
         self.set_left_motor(l_vel)
         
         # print('desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4} '.format(l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
-        # print(' diff: {:2.4}, desired left wheel vel: {:2.4}, actual left wheel vel {:2.4}, desired right wheel vel: {:2.4}, actual right wheel vel {:2.4}, heading: {:2.4} '.format( abs(abs(r_vel) - abs(l_vel)),l_vel, self._left_motor_vel, r_vel, self._right_motor_vel, heading))
         self.xs.append(x)
         self.ys.append(y)
         return
-
-
 
    
     def print_graphs(self):

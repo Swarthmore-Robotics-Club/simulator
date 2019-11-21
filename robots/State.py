@@ -10,14 +10,6 @@ class BigBrother(Enum):
     PRAGUE_SPRING = 3300000
 
 
-# class MinistryOfTruth():
-
-#     def __init__(self):
-#         self.true_heading = 0
-#         self.true_x
-
-
-
 class TheParty():
     def __init__(self, maze):
         self.state = BigBrother.NOT_ENOUGH_TAXES
@@ -35,7 +27,6 @@ class TheParty():
         self.angle_ticker = 0
         self.vel_ticker = 0
         self.dfs = DFS(maze, maze.get_goal(), self.no_op)
-        self.ministry_of_truth = (0.5 ,0.5, 0)
         return
     
     def no_op(self):
@@ -49,7 +40,7 @@ class TheParty():
             
         desired_angle = self.get_desired_angle(x, y, heading)
         angle_error = desired_angle  # should be pos if we want to go left, neg otherwise
-        print("angle err {:2.4} curr_heading {:2.4}".format(angle_error, heading))
+        # print('angle err {:2.4} curr_heading {:2.4}'.format(angle_error, heading))
 
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
         if self.state == BigBrother.PRAGUE_SPRING:
@@ -73,15 +64,13 @@ class TheParty():
 
 
     def get_desired_angle(self, x, y, heading):
-
         y_prime = self.next_cell[1] - y 
         x_prime = self.next_cell[0] - x
 
-        x_transform = x_prime * math.cos(heading) - y_prime * math.sin(heading)
-        y_transform = y_prime * math.cos(heading) + x_prime * math.sin(heading)
+        x_transform = x_prime * math.cos(-heading) - y_prime * math.sin(-heading)
+        y_transform = y_prime * math.cos(-heading) + x_prime * math.sin(-heading)
 
-        shit = math.atan2(y_transform, x_transform)
-        return shit
+        return math.atan2(y_transform, x_transform)
 
 
     def should_slow_down(self, x, y, THRESHOLD_VAL = .1):
@@ -95,7 +84,7 @@ class TheParty():
 
     def get_next_cell(self, x, y):
         cell = self.dfs.get_next_cell(x, y)
-        print("hi we got a new cell mister here it is sire {}".format(cell))
+        print('hi we got a new cell mister here it is sire {}'.format(cell))
         return cell 
 
 
