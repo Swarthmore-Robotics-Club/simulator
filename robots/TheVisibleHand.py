@@ -35,7 +35,6 @@ class TheVisibleHand(Robot):
             raise Exception('x: {}, y: {}'.format(x, y))
         heading = self.get_heading()
 
-        # now use our state to ask the Party what to do
         l_vel, r_vel = self.peoples_liberation_front.get_velocities(x, y, heading, dt) 
         self.set_right_motor(r_vel)
         self.set_left_motor(l_vel)

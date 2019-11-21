@@ -15,9 +15,12 @@ class TheParty():
         self.state = BigBrother.NOT_ENOUGH_TAXES
         self.next_cell = None # tuple
 
-        # next 2 lines have hardcoded floats that should be played with
+        # next 5 lines have hardcoded vals that should be played with
         self.angle_pid = PIDLoop(5, 0, 0.1)
         self.power_val = 2
+        self.acceptable_angle_error = .1
+        self.acceptable_physical_offset = 0.01
+        self.ticks_needed = 100
 
         # next 3 lines should be set w/ our real params
         self.wheel_radius = 0.02 # meters
@@ -31,26 +34,19 @@ class TheParty():
 
 
     def get_velocities(self, x, y, heading, dt):
-        THRESHOLD_VAL = .1
         if self.state == BigBrother.NOT_ENOUGH_TAXES:
             self.next_cell = self.get_next_cell(x, y)
             self.state = BigBrother.PRAGUE_SPRING
-            
-        desired_angle = self.get_desired_angle(x, y, heading)
-        angle_error = desired_angle  # should be pos if we want to go left, neg otherwise
-        # print('angle err {:2.4} curr_heading {:2.4}'.format(angle_error, heading))
-
+        angle_error = self.get_angle_error(x, y, heading)
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
         if self.state == BigBrother.PRAGUE_SPRING:
-            # print('real diff : {:2.4}'. format(abs(desired_angle - heading)))
-            if abs(angle_error) < THRESHOLD_VAL:
-                if self.angle_ticker < 100:
+            if abs(angle_error) < self.acceptable_angle_error:
+                if self.angle_ticker < self.ticks_needed:
                     self.angle_ticker += 1
                 else:
                     self.angle_ticker = 0
                     self.state = BigBrother.GREAT_LEAP_FORWARD
             else:
-                # print('\tResetting angle ticker')
                 self.angle_ticker = 0
             return self.get_individual_proportions(0, angular_vel)
         if self.state == BigBrother.GREAT_LEAP_FORWARD:
@@ -61,24 +57,18 @@ class TheParty():
         raise Exception('ruh roh raggy')
 
 
-    def get_desired_angle_twto(self, x, y, heading):
-        
-        pass
-        
+    def get_angle_error(self, x, y, heading):
+        desired_angle = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
+        diff = desired_angle - heading
+        if abs(diff) <= math.pi:
+            return diff
+        if diff > math.pi:
+            return diff - TWO_PI
+        return diff + TWO_PI
 
 
-    def get_desired_angle(self, x, y, heading):
-        y_prime = self.next_cell[1] - y 
-        x_prime = self.next_cell[0] - x
-
-        x_transform = x_prime * math.cos(-heading) - y_prime * math.sin(-heading)
-        y_transform = y_prime * math.cos(-heading) + x_prime * math.sin(-heading)
-
-        return math.atan2(y_transform, x_transform)
-
-
-    def should_slow_down(self, x, y, THRESHOLD_VAL = .01):
-        return abs(self.next_cell[0] -x) < THRESHOLD_VAL and abs(self.next_cell[1] - y) < THRESHOLD_VAL
+    def should_slow_down(self, x, y):
+        return abs(self.next_cell[0] -x) < self.acceptable_physical_offset and abs(self.next_cell[1] - y) < self.acceptable_physical_offset
 
 
     def slow_down_comrade(self):
