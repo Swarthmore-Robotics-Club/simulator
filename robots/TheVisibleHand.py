@@ -13,12 +13,18 @@ class TheVisibleHand(Robot):
         self.maze = maze
         self.xs = []
         self.ys = []
+        self.race_start = 0
 
         # next 2 lines are hacky way to set the initial position appropriately
         # don't want to set in Robot.py because that screws up earlier bots
         self._x = 0.5
         self._y = 0.5
-        self.peoples_liberation_front = TheParty(maze)
+        self.peoples_liberation_front = TheParty(maze, self.set_race_start)
+        return
+
+
+    def set_race_start(self):
+        self.race_start = len(self.xs)
         return
 
 
@@ -42,7 +48,6 @@ class TheVisibleHand(Robot):
    
     def print_graphs(self):
         fig = plt.figure()
-        plt.plot(self.xs, self.ys, color='lightblue')
         for y in range(len(self.maze.maze)):
             print(y)
             for x in range(len(self.maze.maze[y])):
@@ -55,6 +60,8 @@ class TheVisibleHand(Robot):
                 if not self.maze.can_up(x, y):
                     plt.plot([x, x + 1], [y + 1, y + 1], color='gray')
 
+        plt.plot(self.xs[:self.race_start], self.ys[:self.race_start], color='lightblue')
+        plt.plot(self.xs[self.race_start:], self.ys[self.race_start:], color='midnightblue')
         plt.show()
         return
     
