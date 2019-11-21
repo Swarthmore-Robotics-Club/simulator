@@ -4,6 +4,12 @@ WALL = '#'
 """
 0,0 is bottom left, goal is top right
 """
+
+class Maze_cell():
+    def _init__(self):
+        self.walls = [True, True, True , True] # walls to the north south east west
+
+    
 class Maze():
     def __init__(self, path):
         with open(path) as f:
