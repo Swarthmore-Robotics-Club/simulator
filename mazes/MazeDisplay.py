@@ -7,7 +7,6 @@ pygame.init()
 def json_to_maze(path):
     with open(path) as file:
         data = json.load(file)
-
         cell_arr = []
         for cell in data['cells']:
             x = cell['x']
@@ -16,7 +15,6 @@ def json_to_maze(path):
 
             new_cell = MazeCell(x, y)
             new_cell.walls = walls
-
             cell_arr.append(new_cell)
         return cell_arr
              
@@ -51,6 +49,7 @@ def draw_maze_cell(maze_cell, screen, width):
 
 
 def display_from_json(path):
+    #TODO remove hard coded screen size and cell width
     width = 800
     height = 800
     cell_width = 160
@@ -73,16 +72,15 @@ def display_from_json(path):
         pygame.display.flip()
 
 
-def display():  
-    width = 800
-    height = 800
+
+def display(maze, width, height, cell_width): 
+    
     screen = pygame.display.set_mode((width, height))
-    cell_width = 160
+    
     cols = width // cell_width
     rows = height // cell_width
     running = 1
-    gen = MazeGenerator(rows, cols)
-    maze = gen.maze
+    
 
     while running:
         event = pygame.event.poll()
@@ -95,5 +93,20 @@ def display():
                 draw_maze_cell(cell, screen, cell_width)
         pygame.display.flip()
 
+def _display_test():
+    width = 800
+    height = 800
+    cell_width = 10
+    cols = width // cell_width
+    rows = height // cell_width
+    gen = MazeGenerator(rows, cols)
+    maze = gen.maze
 
-display_from_json('mazes/sample_maze.json')
+    display(maze, width, height, cell_width)
+
+def _disply_test_json():
+    pass
+
+
+display()
+# display_from_json('mazes/sample_maze.json')
