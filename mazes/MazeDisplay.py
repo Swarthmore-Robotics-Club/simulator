@@ -1,6 +1,7 @@
 import pygame 
 from MazeGenerator import MazeCell, MazeGenerator
 import json
+from random import seed
 
 pygame.init()
 
@@ -94,6 +95,7 @@ def display(maze, width, height, cell_width):
         pygame.display.flip()
 
 def _display_test():
+    seed(0)
     width = 800
     height = 800
     cell_width = 160

@@ -36,8 +36,8 @@ class MazeCell():
         if self.x + 1 < len(maze) and not maze[self.y][self.x + 1].visited:
             neighbors.append(maze[self.y][self.x + 1])
         # bottom
-        if self.y + 1 < len(maze[0]) and not maze[self.y - 1][self.x].visited:
-            neighbors.append(maze[self.y - 1][self.x])
+        if self.y + 1 < len(maze[0]) and not maze[self.y + 1][self.x].visited:
+            neighbors.append(maze[self.y + 1][self.x])
 
         if neighbors:
             return neighbors[random.randint(0, len(neighbors) - 1)] 
@@ -51,6 +51,12 @@ class MazeCell():
             "y" : self.y,
             "walls" : self.walls
         }
+
+    def __repr__(self):
+        return self.to_json()
+    
+    def __str__(self):
+        return str(self.to_json())
         
 
     
@@ -59,6 +65,7 @@ class MazeGenerator():
         self.rows = rows
         self.cols = cols 
         self.maze = [ [MazeCell(c, r) for c in range(cols)] for r in range(rows)   ]
+        # self.maze = self.maze[::-1]
         # self.maze = self.maze[::-1]
         self.json = None
         self.generate_maze()
