@@ -58,7 +58,7 @@ class MazeGenerator():
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols 
-        self.maze = [ [MazeCell(r, c) for c in range(cols)] for r in range(rows)   ]
+        self.maze = [ [MazeCell(c, r) for c in range(cols)] for r in range(rows)   ]
         # self.maze = self.maze[::-1]
         self.json = None
         self.generate_maze()
@@ -82,8 +82,9 @@ class MazeGenerator():
         start.visited = True
         curr_cell = None
         stack.append(start)
+
         while stack:
-            if not curr_cell:
+            if curr_cell == None:
                 curr_cell = stack.pop()
             
             neighbor = curr_cell.get_rand_neighbor(self.maze)

@@ -96,7 +96,7 @@ def display(maze, width, height, cell_width):
 def _display_test():
     width = 800
     height = 800
-    cell_width = 10
+    cell_width = 160
     cols = width // cell_width
     rows = height // cell_width
     gen = MazeGenerator(rows, cols)
@@ -108,5 +108,5 @@ def _disply_test_json():
     pass
 
 
-display()
+_display_test()
 # display_from_json('mazes/sample_maze.json')
