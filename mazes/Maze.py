@@ -4,8 +4,6 @@ WALL = '#'
 """
 0,0 is bottom left, goal is top right
 """
-
-
 class Maze():
     def __init__(self, path):
         with open(path) as f:
