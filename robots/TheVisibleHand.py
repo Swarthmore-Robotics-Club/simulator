@@ -1,9 +1,7 @@
 import math
 import matplotlib.pyplot as plt
-from robots.DFS import DFS
-from robots.PIDLoop import PIDLoop
 from robots.Robot import Robot
-from robots.State import TheParty
+from utils.State import TheParty
 
 TWO_PI = 2 * math.pi
 
@@ -14,12 +12,12 @@ class TheVisibleHand(Robot):
         self.xs = []
         self.ys = []
         self.race_start = 0
+        self.peoples_liberation_front = TheParty(maze, self.set_race_start)
 
         # next 2 lines are hacky way to set the initial position appropriately
         # don't want to set in Robot.py because that screws up earlier bots
         self._x = 0.5
         self._y = 0.5
-        self.peoples_liberation_front = TheParty(maze, self.set_race_start)
         return
 
 

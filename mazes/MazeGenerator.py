@@ -28,8 +28,6 @@ class MazeCell():
 
 class MazeGenerator():
     def __init__(self, rows, cols):
-        self.rows = rows
-        self.cols = cols 
         self.maze = [[MazeCell(c, r) for c in range(cols)] for r in range(rows)]
         self.generate_maze()
         return
@@ -80,7 +78,6 @@ class MazeGenerator():
     def remove_walls(self, cell, neighbor_cell):
         x = cell.x - neighbor_cell.x
         y = cell.y - neighbor_cell.y
-
         if x == 1: # neighbor is to the left 
             cell.walls[3] = False
             neighbor_cell.walls[1] = False
@@ -97,11 +94,7 @@ class MazeGenerator():
 
 
     def to_json(self):
-        return {
-            "rows" : self.rows,
-            "cols" : self.cols,
-            "cells" : [ cell.to_json() for row in self.maze for cell in row ]
-        }
+        return { 'cells': [ cell.to_json() for row in self.maze for cell in row ] }
 
     
     def write(self, filename):

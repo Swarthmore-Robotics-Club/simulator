@@ -1,6 +1,6 @@
 from enum import Enum
-from robots.PIDLoop import PIDLoop
-from robots.DFS import DFS
+from PIDLoop import PIDLoop
+from DFS import DFS
 import math
 
 TWO_PI = math.pi * 2

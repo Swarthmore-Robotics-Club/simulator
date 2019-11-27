@@ -1,6 +1,7 @@
 import sys
 sys.path.append('robots')
 sys.path.append('mazes')
+sys.path.append('utils')
 from mazes.Maze import Maze
 from robots.TheVisibleHand import TheVisibleHand
 
