@@ -16,9 +16,9 @@ class MazeCell():
 
     def to_json(self):
         return {
-            "x": self.x,
-            "y" : self.y,
-            "walls" : self.walls
+            'x': self.x,
+            'y': self.y,
+            'walls': self.walls
         }
 
 
