@@ -69,14 +69,11 @@ class Labyrinth():
 
 
     def _generate_ints_between(self, x1, x2):
-        x1plus1 = round(x1 + 1, 4)
-        if x2 < 0 and x1 > 0:
-            return self._generate_ints_between(x2, x1)
-        if x1 <= x2 and isinstance(x1, int):
-            return [x1] + self._generate_ints_between(x1plus1, x2)
-        if x1plus1 <= x2:
-            return [math.floor(x1plus1)] + self._generate_ints_between(x1plus1, x2)
-        return []
+        big = max(x1, x2)
+        small = min(x1, x2)
+        if isinstance(big, int):
+            return range(math.ceil(small), big + 1)
+        return range(math.ceil(small), math.ceil(big))
 
 
     def _is_wall(self, x, y):
