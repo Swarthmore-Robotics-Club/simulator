@@ -1,10 +1,10 @@
 from collections import defaultdict
 import math
 
-class DFS():
-    def __init__(self, maze, goal, callback, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
+class DFSL():
+    def __init__(self, labyrinth, goal, callback, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
         self.goal = goal
-        self.maze = maze
+        self.labyrinth = labyrinth
         self.callback = callback
         self.acceptable_offset = acceptable_offset
         self.starting_location = starting_loc
@@ -16,19 +16,43 @@ class DFS():
         return
     
     
-    def add_current_cell(self, current):
+    def add_current_cell(self, current, heading):
         neighbors = []
         x, y = current
         floor_x = math.floor(x)
         floor_y = math.floor(y)
-        if self.maze.can_left(floor_x, floor_y):
-            neighbors.append((x - 1, y))
-        if self.maze.can_down(floor_x, floor_y):
-            neighbors.append((x, y - 1))
-        if self.maze.can_right(floor_x, floor_y):
-            neighbors.append((x + 1, y))
-        if self.maze.can_up(floor_x, floor_y):
-            neighbors.append((x, y + 1))
+        straight, left, right = self.labyrinth.get_sensor_readings(x, y, heading)
+        exact_x = floor_x + .5
+        exact_y = floor_y + .5
+        if heading < math.pi / 4 or heading > 1.75 * math.pi: # straight ahead is right
+            if straight > 1:
+                neighbors.append((exact_x + 1, exact_y))
+            if left > 1:
+                neighbors.append((exact_x, exact_y + 1))
+            if right > 1:
+                neighbors.append((exact_x, exact_y - 1))
+        elif heading < .75 * math.pi: # straight ahead is up
+            if straight > 1:
+                neighbors.append((exact_x, exact_y + 1))
+            if left > 1:
+                neighbors.append((exact_x - 1, exact_y))
+            if right > 1:
+                neighbors.append((exact_x + 1, exact_y))
+        elif heading < 1.25 * math.pi: # straight ahead is left
+            if straight > 1:
+                neighbors.append((exact_x - 1, exact_y))
+            if left > 1:
+                neighbors.append((exact_x, exact_y - 1))
+            if right > 1:
+                neighbors.append((exact_x, exact_y + 1))
+        else: # straight ahead is down
+            if straight > 1:
+                neighbors.append((exact_x, exact_y - 1))
+            if left > 1:
+                neighbors.append((exact_x + 1, exact_y))
+            if right > 1:
+                neighbors.append((exact_x - 1, exact_y))
+        
         for bor in neighbors:
             self.graph[current].add(bor)
             if bor not in self.already_visited:
@@ -37,16 +61,16 @@ class DFS():
         return
     
     
-    def get_next_cell(self, x, y):
+    def get_next_cell(self, x, y, heading):
         if not self.next_cell: # assume idealized start
-            self.add_current_cell((x, y))
+            self.add_current_cell((x, y), heading)
             self.next_cell = self.stack.pop()
         desired_x, desired_y = self.next_cell
         if abs(desired_x - x) > self.acceptable_offset or abs(desired_y - y) > self.acceptable_offset:
             return self.next_cell
         if self.state == 2 and desired_x == self.goal[0] and desired_y == self.goal[1]:
             raise Exception('We done here', self.goal, x, y)
-        self.add_current_cell(self.next_cell)
+        self.add_current_cell(self.next_cell, heading)
         if len(self.stack) == 0:
             if self.state == 0:
                 self.stack.append(self.starting_location)
@@ -57,9 +81,11 @@ class DFS():
                 self.state = 2
             else:
                 raise Exception('We had an empty stack but hadn\'t finished yet', x, y, '\n\n', self.graph)
-
         if not self.is_adjacent(self.next_cell, self.stack[-1]):
-            p = self.find_shortest_path(self.next_cell, self.stack[-1])[::-1]
+            p = self.find_shortest_path(self.next_cell, self.stack[-1])
+            if not p:
+                raise Exception(self.next_cell, self.stack[-1], self.graph)
+            p = p[::-1]
             p = p[1:-1]
             self.stack.extend(p)
         self.next_cell = self.stack.pop()

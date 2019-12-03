@@ -19,8 +19,6 @@ class Robot():
 
     def set_right_motor(self, value):
         self._right_motor_vel = max(min(value, self.max_vel), self.min_vel)
-
-        
     
     def set_left_motor(self, value):
         self._left_motor_vel = max(min(value, self.max_vel), self.min_vel)

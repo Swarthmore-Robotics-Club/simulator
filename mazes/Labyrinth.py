@@ -19,7 +19,7 @@ class Labyrinth():
         self.width = screen_width
         self.height = screen_height
         self.cell_width = screen_cell_width
-        self.screen = pygame.display.set_mode((width, height))
+        self.screen = pygame.display.set_mode((self.width, self.height))
         self.screen.fill(WHITE)
         self._max_x = len(self.maze[0]) - 1
         self._max_y = len(self.maze) - 1
@@ -88,7 +88,7 @@ class Labyrinth():
 
     def draw_lines(self, xs, ys, color=LIGHT_BLUE):
         coords = [(self.cell_width * xs[i], self.cell_width * ys[i]) for i in range(len(xs))]
-        pygame.draw.lines(self.screen, (51, 153, 255), False, coords)
+        pygame.draw.lines(self.screen, color, False, coords)
         return
     
 
@@ -133,5 +133,5 @@ if __name__ == '__main__':
     print(wicked.get_sensor_readings(0.5, 0.5, HALF_PI + .2))
     xs = [x/10 for x in range(5, 40)]
     ys = [y/10 for y in range(5, 40)]
-    # wicked.draw_lines(xs, ys)
-    # wicked.display()
+    wicked.draw_lines(xs, ys)
+    wicked.display()
