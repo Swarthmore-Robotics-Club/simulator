@@ -38,7 +38,7 @@ class ThePartyL():
             self.next_cell = self.get_next_cell(x, y, heading)
             self.state = BigBrother.PRAGUE_SPRING
         angle_error = self.get_angle_error(x, y, heading)
-        angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt) 
+        angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt)
         if self.state == BigBrother.PRAGUE_SPRING:
             if abs(angle_error) < self.acceptable_angle_error:
                 if self.angle_ticker < self.ticks_needed:
@@ -79,7 +79,7 @@ class ThePartyL():
     def get_next_cell(self, x, y, heading):
         cell = self.dfs.get_next_cell(x, y, heading)
         print('hi we got a new cell mister here it is sire {}'.format(cell))
-        return cell 
+        return cell
 
 
     def get_individual_proportions(self, vel, a_vel):

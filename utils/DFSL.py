@@ -14,8 +14,8 @@ class DFSL():
         self.next_cell = None # tuple
         self.state = 0
         return
-    
-    
+
+
     def add_current_cell(self, current, heading):
         neighbors = []
         x, y = current
@@ -50,7 +50,7 @@ class DFSL():
                 neighbors.append((exact_x + 1, exact_y))
             if right > 1:
                 neighbors.append((exact_x - 1, exact_y))
-        
+
         for bor in neighbors:
             self.graph[current].add(bor)
             self.graph[bor].add(current)
@@ -58,8 +58,8 @@ class DFSL():
                 self.already_visited.add(bor)
                 self.stack.append(bor)
         return
-    
-    
+
+
     def get_next_cell(self, x, y, heading):
         if not self.next_cell: # assume idealized start
             self.add_current_cell((x, y), heading)
@@ -68,7 +68,7 @@ class DFSL():
         if abs(desired_x - x) > self.acceptable_offset or abs(desired_y - y) > self.acceptable_offset:
             return self.next_cell
         if self.state == 2 and desired_x == self.goal[0] and desired_y == self.goal[1]:
-            raise Exception('We done here', self.goal, x, y)
+            raise Exception('We done here', self.graph)
         self.add_current_cell(self.next_cell, heading)
         if len(self.stack) == 0:
             if self.state == 0:
@@ -80,19 +80,13 @@ class DFSL():
                 self.state = 2
             else:
                 raise Exception('We had an empty stack but hadn\'t finished yet', x, y, '\n\n', self.graph)
-        if not self.is_adjacent(self.next_cell, self.stack[-1]):
-            p = self.find_shortest_path(self.next_cell, self.stack[-1])
-            if not p:
-                raise Exception(self.next_cell, self.stack[-1], self.graph)
-            p = p[::-1]
-            p = p[1:-1]
-            self.stack.extend(p)
+        p = self.find_shortest_path(self.next_cell, self.stack[-1])
+        if not p:
+            raise Exception(self.next_cell, self.stack[-1], self.graph)
+        p = p[::-1]
+        self.stack.extend(p[1:-1])
         self.next_cell = self.stack.pop()
         return self.next_cell
-
-
-    def is_adjacent(self, p1, p2):
-        return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]) == 1
 
 
     def find_shortest_path(self, start, end):

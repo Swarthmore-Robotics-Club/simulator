@@ -15,11 +15,11 @@ class AMEE(Robot):
     def __init__(self):
         Robot.__init__(self)
         self._x, self._y = STARTING_LOCATION
-        self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE).maze, LENGTH_OF_MAZE * 50, LENGTH_OF_MAZE * 50, 50)
+        self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE).maze)
         self.usa = ThePartyL(self.labyrinth, self.set_race_start)
         self.xs = []
         self.ys = []
-        self.race_start = 30
+        self.race_start = 0
         return
 
 
@@ -32,7 +32,7 @@ class AMEE(Robot):
         x = self.get_x()
         y = self.get_y()
         heading = self.get_heading()
-        l_vel, r_vel = self.usa.get_velocities(x, y, heading, dt) 
+        l_vel, r_vel = self.usa.get_velocities(x, y, heading, dt)
         self.set_right_motor(r_vel)
         self.set_left_motor(l_vel)
         self.xs.append(x)
