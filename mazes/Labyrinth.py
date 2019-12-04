@@ -1,18 +1,8 @@
 import math
-import os, sys
-sys.stdout = open(os.devnull, 'w')
-import pygame
-sys.stdout = sys.__stdout__
+import matplotlib.pyplot as plt
 
-LIGHT_BLUE = (51, 153, 255)
-GARNET = (255, 0, 0)
-DARK_BLUE = (0, 0, 255)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
 TWO_PI = 2 * math.pi
 HALF_PI = math.pi / 2
-
-pygame.init()
 
 class Labyrinth():
     def __init__(self, maze, screen_width = 800, screen_height = 800, screen_cell_width = 50):
@@ -20,8 +10,6 @@ class Labyrinth():
         self.width = screen_width
         self.height = screen_height
         self.cell_width = screen_cell_width
-        self.screen = pygame.display.set_mode((self.width, self.height))
-        self.screen.fill(WHITE)
         self._max_x = len(self.maze[0]) - 1
         self._max_y = len(self.maze) - 1
         return
@@ -36,7 +24,6 @@ class Labyrinth():
         BIG_DIAMETER = 16 * math.sqrt(2)
         x2 = x1 + BIG_DIAMETER*math.cos(heading)
         y2 = y1 + BIG_DIAMETER*math.sin(heading)
-        #print('root: {}, x1: {}, x2: {}, y1: {}, y2: {}, heading: {}'.format(root, x1, x2, y1, y2, heading))
         form_for_y = lambda x: y1 + ((y2 - y1) * (x - x1)/(x2 - x1))
         form_for_x = lambda y: x1 + ((x2 - x1) * (y - y1)/(y2 - y1))
         potential_walls = []
@@ -49,12 +36,9 @@ class Labyrinth():
         potential_walls = sorted(potential_walls, key=lambda pt: pt[2])
         straight = float('inf')
         for possible in potential_walls:
-            #print('possible wall: {}'.format(possible))
             if self._is_wall(possible[0], possible[1]):
                 straight = possible[2]
-                #print('yeah that\'s a wall alrighty')
                 break
-        #print('\n')
         if not root:
             return straight
         left = self.get_sensor_readings(x1, y1, self._rescale_heading(heading + HALF_PI), False)
@@ -79,7 +63,6 @@ class Labyrinth():
 
 
     def _is_wall(self, x, y):
-        
         if isinstance(x, int): # means we're on a vertical line
             if x >= len(self.maze[0]):
                 return True
@@ -89,16 +72,12 @@ class Labyrinth():
         if isinstance(y, int): # horizontal line
             if y >= len(self.maze):
                 return True # always a wall boi
-            
             return self.maze[y][math.floor(x)].walls[2]
-
-
         return False # as we're not on a line, can't be at a wall
 
 
-    def draw_lines(self, xs, ys, color=GARNET):
-        coords = [(self.cell_width * xs[i], self.cell_width * ys[i]) for i in range(len(xs))]
-        pygame.draw.lines(self.screen, color, False, coords)
+    def draw_lines(self, xs, ys, color='lightblue'):
+        plt.plot(xs, ys, color=color)
         return
     
 
@@ -106,25 +85,21 @@ class Labyrinth():
         for row in self.maze:
             for cell in row:
                 self._draw_maze_cell(cell)
-        pygame.display.flip()
-        while pygame.event.wait().type != pygame.QUIT:
-            pass
+        plt.show()
         return
 
 
-    def _draw_maze_cell(self, maze_cell, lines = []):
-        x = maze_cell.x * self.cell_width
-        y = maze_cell.y * self.cell_width
-        if maze_cell.walls[2]: # y increasing
-            lines.append(((x, y), (x + self.cell_width, y)))
-        if maze_cell.walls[1]:
-            lines.append(((x + self.cell_width, y), (x + self.cell_width, y + self.cell_width)))
+    def _draw_maze_cell(self, maze_cell):
+        x = maze_cell.x
+        y = maze_cell.y
         if maze_cell.walls[0]:
-            lines.append(((x + self.cell_width, y + self.cell_width), (x , y + self.cell_width)))
+            plt.plot([x, x + 1], [y + 1, y + 1], color='gray')
+        if maze_cell.walls[1]:
+            plt.plot([x + 1, x + 1], [y, y + 1], color='gray')
+        if maze_cell.walls[2]:
+            plt.plot([x, x + 1], [y, y], color='gray')
         if maze_cell.walls[3]:
-            lines.append(((x, y + self.cell_width), (x , y)))
-        for start, end in lines:
-            pygame.draw.line(self.screen, BLACK, start, end) 
+            plt.plot([x, x], [y, y + 1], color='gray')
         return
 
 

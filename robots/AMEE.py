@@ -1,6 +1,6 @@
 import math
 import random
-from mazes.Labyrinth import Labyrinth, DARK_BLUE
+from mazes.Labyrinth import Labyrinth
 from mazes.MazeGenerator import MazeGenerator
 from utils.DFSL import DFSL
 from utils.PIDLoop import PIDLoop
@@ -10,7 +10,6 @@ from Robot import Robot
 LENGTH_OF_MAZE = 16
 STARTING_LOCATION = (0.5, 0.5)
 
-# random.seed(0)
 
 class AMEE(Robot):
     def __init__(self):
@@ -42,7 +41,7 @@ class AMEE(Robot):
 
 
     def print_graphs(self):
-        self.labyrinth.draw_lines(self.xs[:self.race_start], self.ys[:self.race_start])
-        self.labyrinth.draw_lines(self.xs[self.race_start:], self.ys[self.race_start:], DARK_BLUE)
+        self.labyrinth.draw_lines(self.xs[:self.race_start], self.ys[:self.race_start], 'lightblue')
+        self.labyrinth.draw_lines(self.xs[self.race_start:], self.ys[self.race_start:], 'midnightblue')
         self.labyrinth.display()
         return
