@@ -30,6 +30,14 @@ class MazeGenerator():
     def __init__(self, rows, cols):
         self.maze = [[MazeCell(c, r) for c in range(cols)] for r in range(rows)]
         self.generate_maze()
+
+        for row in self.maze:
+            for cell in row:
+                # god forgive me
+                cell.walls[0], cell.walls[2] =  cell.walls[2], cell.walls[0]
+                # cell.walls[1], cell.walls[3] =  cell.walls[3], cell.walls[1]
+
+
         return
 
 

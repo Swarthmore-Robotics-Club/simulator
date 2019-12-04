@@ -10,7 +10,7 @@ from Robot import Robot
 LENGTH_OF_MAZE = 16
 STARTING_LOCATION = (0.5, 0.5)
 
-random.seed(0)
+# random.seed(0)
 
 class AMEE(Robot):
     def __init__(self):

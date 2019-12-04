@@ -17,6 +17,7 @@ class DFSL():
     
     
     def add_current_cell(self, current, heading):
+        # 
         neighbors = []
         x, y = current
         floor_x = math.floor(x)
@@ -24,28 +25,32 @@ class DFSL():
         straight, left, right = self.labyrinth.get_sensor_readings(x, y, heading)
         exact_x = floor_x + .5
         exact_y = floor_y + .5
-        if heading < math.pi / 4 or heading > 1.75 * math.pi: # straight ahead is right
+        if heading < math.pi / 4 or heading > 1.75 * math.pi: 
+            # straight ahead is right
             if straight > 1:
                 neighbors.append((exact_x + 1, exact_y))
             if left > 1:
                 neighbors.append((exact_x, exact_y + 1))
             if right > 1:
                 neighbors.append((exact_x, exact_y - 1))
-        elif heading < .75 * math.pi: # straight ahead is up
+        elif heading < .75 * math.pi:
+            # straight ahead is up
             if straight > 1:
                 neighbors.append((exact_x, exact_y + 1))
             if left > 1:
                 neighbors.append((exact_x - 1, exact_y))
             if right > 1:
                 neighbors.append((exact_x + 1, exact_y))
-        elif heading < 1.25 * math.pi: # straight ahead is left
+        elif heading < 1.25 * math.pi: 
+            # straight ahead is left
             if straight > 1:
                 neighbors.append((exact_x - 1, exact_y))
             if left > 1:
                 neighbors.append((exact_x, exact_y - 1))
             if right > 1:
                 neighbors.append((exact_x, exact_y + 1))
-        else: # straight ahead is down
+        else: 
+            # straight ahead is down
             if straight > 1:
                 neighbors.append((exact_x, exact_y - 1))
             if left > 1:
@@ -55,6 +60,7 @@ class DFSL():
         
         for bor in neighbors:
             self.graph[current].add(bor)
+            self.graph[bor].add(current)
             if bor not in self.already_visited:
                 self.already_visited.add(bor)
                 self.stack.append(bor)

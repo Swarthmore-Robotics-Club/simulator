@@ -5,6 +5,7 @@ import pygame
 sys.stdout = sys.__stdout__
 
 LIGHT_BLUE = (51, 153, 255)
+GARNET = (255, 0, 0)
 DARK_BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -32,9 +33,10 @@ class Labyrinth():
 
     # returns distance to nearest wall from each sensor (w/ 1 being the width of a cell) or float('inf') if the wall's too far
     def get_sensor_readings(self, x1, y1, heading, root = True):
-        x2 = x1 + math.cos(heading)
-        y2 = y1 + math.sin(heading)
-        print('root: {}, x1: {}, x2: {}, y1: {}, y2: {}, heading: {}'.format(root, x1, x2, y1, y2, heading))
+        BIG_DIAMETER = 16 * math.sqrt(2)
+        x2 = x1 + BIG_DIAMETER*math.cos(heading)
+        y2 = y1 + BIG_DIAMETER*math.sin(heading)
+        #print('root: {}, x1: {}, x2: {}, y1: {}, y2: {}, heading: {}'.format(root, x1, x2, y1, y2, heading))
         form_for_y = lambda x: y1 + ((y2 - y1) * (x - x1)/(x2 - x1))
         form_for_x = lambda y: x1 + ((x2 - x1) * (y - y1)/(y2 - y1))
         potential_walls = []
@@ -47,12 +49,12 @@ class Labyrinth():
         potential_walls = sorted(potential_walls, key=lambda pt: pt[2])
         straight = float('inf')
         for possible in potential_walls:
-            print('possible wall: {}'.format(possible))
+            #print('possible wall: {}'.format(possible))
             if self._is_wall(possible[0], possible[1]):
                 straight = possible[2]
-                print('yeah that\'s a wall alrighty')
+                #print('yeah that\'s a wall alrighty')
                 break
-        print('\n')
+        #print('\n')
         if not root:
             return straight
         left = self.get_sensor_readings(x1, y1, self._rescale_heading(heading + HALF_PI), False)
@@ -77,16 +79,24 @@ class Labyrinth():
 
 
     def _is_wall(self, x, y):
+        
         if isinstance(x, int): # means we're on a vertical line
+            if x >= len(self.maze[0]):
+                return True
             if isinstance(y, int): # means we're at a corner
                 return True in self.maze[y][x].walls[2:] # check if either down or left is a wall
             return self.maze[math.floor(y)][x].walls[3]
         if isinstance(y, int): # horizontal line
+            if y >= len(self.maze):
+                return True # always a wall boi
+            
             return self.maze[y][math.floor(x)].walls[2]
+
+
         return False # as we're not on a line, can't be at a wall
 
 
-    def draw_lines(self, xs, ys, color=LIGHT_BLUE):
+    def draw_lines(self, xs, ys, color=GARNET):
         coords = [(self.cell_width * xs[i], self.cell_width * ys[i]) for i in range(len(xs))]
         pygame.draw.lines(self.screen, color, False, coords)
         return
@@ -105,11 +115,11 @@ class Labyrinth():
     def _draw_maze_cell(self, maze_cell, lines = []):
         x = maze_cell.x * self.cell_width
         y = maze_cell.y * self.cell_width
-        if maze_cell.walls[0]:
+        if maze_cell.walls[2]: # y increasing
             lines.append(((x, y), (x + self.cell_width, y)))
         if maze_cell.walls[1]:
             lines.append(((x + self.cell_width, y), (x + self.cell_width, y + self.cell_width)))
-        if maze_cell.walls[2]:
+        if maze_cell.walls[0]:
             lines.append(((x + self.cell_width, y + self.cell_width), (x , y + self.cell_width)))
         if maze_cell.walls[3]:
             lines.append(((x, y + self.cell_width), (x , y)))
