@@ -1,6 +1,9 @@
 from collections import defaultdict
 import math
 
+def tp(t, n = 4):
+    return tuple(map(lambda x: round(x, n), t))
+
 class DFSL():
     def __init__(self, labyrinth, goal, callback, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
         self.goal = goal
@@ -13,42 +16,44 @@ class DFSL():
         self.stack = []
         self.next_cell = None # tuple
         self.state = 0
+        self.distance_threshold = .8
         return
 
 
     def add_current_cell(self, determined_current, real_current, heading):
         neighbors = []
         straight, left, right = self.labyrinth.get_sensor_readings(*real_current, heading)
+        print('sensors: {}, heading: {}'.format(tp((straight, left, right)), tp((heading,))[0]))
         x, y = determined_current
         exact_x = math.floor(x) + .5
         exact_y = math.floor(y) + .5
         if heading < math.pi / 4 or heading > 1.75 * math.pi: # straight ahead is right
-            if straight > 1:
+            if straight > self.distance_threshold:
                 neighbors.append((exact_x + 1, exact_y))
-            if left > 1:
+            if left > self.distance_threshold:
                 neighbors.append((exact_x, exact_y + 1))
-            if right > 1:
+            if right > self.distance_threshold:
                 neighbors.append((exact_x, exact_y - 1))
         elif heading < .75 * math.pi: # straight ahead is up
-            if straight > 1:
+            if straight > self.distance_threshold:
                 neighbors.append((exact_x, exact_y + 1))
-            if left > 1:
+            if left > self.distance_threshold:
                 neighbors.append((exact_x - 1, exact_y))
-            if right > 1:
+            if right > self.distance_threshold:
                 neighbors.append((exact_x + 1, exact_y))
         elif heading < 1.25 * math.pi: # straight ahead is left
-            if straight > 1:
+            if straight > self.distance_threshold:
                 neighbors.append((exact_x - 1, exact_y))
-            if left > 1:
+            if left > self.distance_threshold:
                 neighbors.append((exact_x, exact_y - 1))
-            if right > 1:
+            if right > self.distance_threshold:
                 neighbors.append((exact_x, exact_y + 1))
         else: # straight ahead is down
-            if straight > 1:
+            if straight > self.distance_threshold:
                 neighbors.append((exact_x, exact_y - 1))
-            if left > 1:
+            if left > self.distance_threshold:
                 neighbors.append((exact_x + 1, exact_y))
-            if right > 1:
+            if right > self.distance_threshold:
                 neighbors.append((exact_x - 1, exact_y))
 
         for bor in neighbors:
@@ -71,6 +76,7 @@ class DFSL():
             raise Exception('We done here')
         self.add_current_cell(self.next_cell, real_coords, heading)
         if len(self.stack) == 0:
+            print('Stack\'s empty, state is {}'.format(self.state))
             if self.state == 0:
                 self.stack.append(self.starting_location)
                 self.state = 1

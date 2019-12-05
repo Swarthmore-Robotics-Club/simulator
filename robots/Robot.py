@@ -17,7 +17,7 @@ class Robot():
         self._heading = 0.0
         self.max_vel = 1
         self.min_vel = -1
-        self.wheel_radius = BASE_WHEEL_RADIUS
+        self.wheel_perimeter = BASE_WHEEL_RADIUS * TWO_PI
         self._ticks_left = 0
         self._ticks_right = 0
         return
@@ -28,7 +28,7 @@ class Robot():
     def set_right_motor(self, value):
         self._right_motor_vel = max(min(value, self.max_vel), self.min_vel)
         return
-    
+
     def set_left_motor(self, value):
         self._left_motor_vel = max(min(value, self.max_vel), self.min_vel)
         return
@@ -49,6 +49,13 @@ class Robot():
         return
 
     def _integrate_motors(self, dt):
+        left_distance = (self._left_motor_vel) * dt
+        left_wheel_revs = left_distance / self.wheel_perimeter
+        self._ticks_left += int(left_wheel_revs * TICKS_PER_REVOLUTION)
+        right_distance = (self._right_motor_vel) * dt
+        right_wheel_revs = right_distance / self.wheel_perimeter
+        self._ticks_right += int(right_wheel_revs * TICKS_PER_REVOLUTION)
+
         self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) / 2
         self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) / 2
         self._x += dt * self._dforward * math.cos(self._heading)
@@ -56,4 +63,3 @@ class Robot():
         self._heading += dt * self._dheading + TWO_PI
         self._heading = math.fmod(self._heading, TWO_PI)
         return
-

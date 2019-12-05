@@ -10,6 +10,7 @@ from Robot import Robot
 LENGTH_OF_MAZE = 16
 STARTING_LOCATION = (0.5, 0.5)
 
+random.seed(0)
 
 class AMEE(Robot):
     def __init__(self):
@@ -34,9 +35,11 @@ class AMEE(Robot):
         x = self.get_x()
         y = self.get_y()
         heading = self.get_heading()
+        # print('reality: {}'.format(tuple(map(lambda x: round(x, 4), (x, y, heading)))))
         l_vel, r_vel = self.usa.get_velocities(x, y, heading, dt)
         self.set_right_motor(r_vel)
         self.set_left_motor(l_vel)
+        # print('left vel: {}, right vel: {}'.format(l_vel, r_vel))
         self.determined_xs.append(self.usa.position[0])
         self.xs.append(x)
         self.determined_ys.append(self.usa.position[1])

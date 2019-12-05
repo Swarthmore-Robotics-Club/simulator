@@ -1,6 +1,6 @@
 from enum import Enum
 import math
-from DFSL import DFSL
+from DFSL import DFSL, tp
 from PIDLoop import PIDLoop
 from robots.Robot import TICKS_PER_REVOLUTION
 
@@ -23,14 +23,12 @@ class ThePartyL():
         self.prev_ticks_right = 0
         self.position = (*starting_loc, 0.0) # x, y, heading
 
-        # next 5 lines have hardcoded vals that should be played with
         self.angle_pid = PIDLoop(5, 0, 0.1)
         self.power_val = 2
         self.acceptable_angle_error = .1
         self.acceptable_physical_offset = 0.01
         self.ticks_needed = 100
 
-        # next 3 lines should be set w/ our real params
         self.wheel_radius = 0.02 # meters
         self.wheel_base_length = 0.09 # meters
         self.max_vel = 0.3 # m/s
@@ -65,8 +63,9 @@ class ThePartyL():
 
     def _update_position(self):
         ticks_left, ticks_right = self.robot.read_encoders()
+        #print('left ticks: {}, right ticks: {}'.format(ticks_left, ticks_right))
         diff_ticks_left = ticks_left - self.prev_ticks_left
-        diff_ticks_right = ticks_right - self.prev_ticks_right 
+        diff_ticks_right = ticks_right - self.prev_ticks_right
         self.prev_ticks_left = ticks_left
         self.prev_ticks_right = ticks_right
 
@@ -77,8 +76,9 @@ class ThePartyL():
         prev_x, prev_y, prev_heading = self.position
         new_x = prev_x + (d_center * math.cos(prev_heading))
         new_y = prev_y + (d_center * math.sin(prev_heading))
-        new_heading = prev_heading + ((d_right_wheel - d_left_wheel) / self.wheel_base_length)
+        new_heading = math.fmod(prev_heading + ((d_right_wheel - d_left_wheel) / 2) + TWO_PI, TWO_PI)
         self.position = (new_x, new_y, new_heading)
+        # print('In with the new pos: {}'.format(tuple(map(lambda x: round(x, 4), self.position))))
         return
 
 
@@ -99,7 +99,7 @@ class ThePartyL():
 
     def get_next_cell(self, x, y, real_x, real_y, heading):
         cell = self.dfs.get_next_cell(x, y, (real_x, real_y), heading)
-        print('hi we got a new cell mister here it is sire {}'.format(cell))
+        print('Reality: {}, belief: {}\n\tNext cell: {}'.format(tp((real_x, real_y, heading)), tp(self.position), cell))
         return cell
 
 
@@ -113,7 +113,7 @@ class ThePartyL():
     """
     velocity -> forward velocity, m/s
     angular_velocity > angular velocity, radians/s
-    
+
     @returns left and right wheel velocities (in m/s?)
     see http://faculty.salina.k-state.edu/tim/robotics_sg/Control/kinematics/unicycle.html
     """
