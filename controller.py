@@ -1,20 +1,24 @@
+import logging
 import sys
 sys.path.append('robots')
 sys.path.append('mazes')
-from mazes.Maze import Maze
-from robots.TheVisibleHand import TheVisibleHand
+sys.path.append('utils')
+from AMEE import AMEE
 
-maze = Maze(sys.argv[1] if len(sys.argv) > 1 else 'mazes/data/example1.map')
-robot = TheVisibleHand(maze)
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+robot = AMEE()
 dt = 0.01
 
+j = 0
 try:
-    j = 0
     while True:
         j += 1
         robot.loop(dt)
         robot._integrate_motors(dt)
 except (Exception, KeyboardInterrupt) as e:
-    print('\n\n', e, '\n\nj: {:,}'.format(j))
-
+    logger.exception(e)
+print('\n\nj: {:,}'.format(j))
 robot.print_graphs()

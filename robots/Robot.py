@@ -1,5 +1,9 @@
 import math
 
+TICKS_PER_REVOLUTION = 2750
+BASE_WHEEL_RADIUS = 0.02
+TWO_PI = 2 * math.pi
+
 class Robot():
     def __init__(self):
         self._right_motor = 0.0
@@ -13,17 +17,21 @@ class Robot():
         self._heading = 0.0
         self.max_vel = 1
         self.min_vel = -1
+        self.wheel_perimeter = BASE_WHEEL_RADIUS * TWO_PI
+        self._ticks_left = 0
+        self._ticks_right = 0
+        return
 
     def loop(self, dt):
         return
 
     def set_right_motor(self, value):
         self._right_motor_vel = max(min(value, self.max_vel), self.min_vel)
+        return
 
-        
-    
     def set_left_motor(self, value):
         self._left_motor_vel = max(min(value, self.max_vel), self.min_vel)
+        return
 
     def get_x(self):
         return self._x
@@ -34,20 +42,24 @@ class Robot():
     def get_heading(self):
         return self._heading
 
+    def read_encoders(self):
+        return (self._ticks_left, self._ticks_right)
+
     def print_graphs(self):
         return
 
     def _integrate_motors(self, dt):
-        # self._right_motor_vel += dt * (self._right_motor - self._right_motor_vel)
-        # self._left_motor_vel += dt * (self._left_motor - self._left_motor_vel)
-        
-        self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
-        self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) * (1. / 2.)
+        left_distance = (self._left_motor_vel) * dt
+        left_wheel_revs = left_distance / self.wheel_perimeter
+        self._ticks_left += int(left_wheel_revs * TICKS_PER_REVOLUTION)
+        right_distance = (self._right_motor_vel) * dt
+        right_wheel_revs = right_distance / self.wheel_perimeter
+        self._ticks_right += int(right_wheel_revs * TICKS_PER_REVOLUTION)
 
-
+        self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) / 2
+        self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) / 2
         self._x += dt * self._dforward * math.cos(self._heading)
         self._y += dt * self._dforward * math.sin(self._heading)
-        self._heading += dt * self._dheading + 2. * math.pi
-        self._heading = math.fmod(self._heading, 2. * math.pi)
+        self._heading += dt * self._dheading + TWO_PI
+        self._heading = math.fmod(self._heading, TWO_PI)
         return
-
