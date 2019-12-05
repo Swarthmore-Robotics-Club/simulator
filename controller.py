@@ -3,7 +3,7 @@ import sys
 sys.path.append('robots')
 sys.path.append('mazes')
 sys.path.append('utils')
-from robots.AMEE import AMEE
+from AMEE import AMEE
 
 
 logging.basicConfig(level=logging.DEBUG)

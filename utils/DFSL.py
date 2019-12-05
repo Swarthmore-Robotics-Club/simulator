@@ -16,7 +16,7 @@ class DFSL():
         self.stack = []
         self.next_cell = None # tuple
         self.state = 0
-        self.distance_threshold = .8
+        self.distance_threshold = 1
         return
 
 
