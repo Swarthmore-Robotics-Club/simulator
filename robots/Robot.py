@@ -1,5 +1,9 @@
 import math
 
+TICKS_PER_REVOLUTION = 2750
+BASE_WHEEL_RADIUS = 0.02
+TWO_PI = 2 * math.pi
+
 class Robot():
     def __init__(self):
         self._right_motor = 0.0
@@ -13,11 +17,9 @@ class Robot():
         self._heading = 0.0
         self.max_vel = 1
         self.min_vel = -1
-        self.left_wheel_encoder_callback = None
-        self.left_wheel_distance = 0
-        self.right_wheel_encoder_callback = None
-        self.right_wheel_distance = 0
-        self.size_of_wheel = None
+        self.wheel_radius = BASE_WHEEL_RADIUS
+        self._ticks_left = 0
+        self._ticks_right = 0
         return
 
     def loop(self, dt):
@@ -40,15 +42,18 @@ class Robot():
     def get_heading(self):
         return self._heading
 
+    def read_encoders(self):
+        return (self._ticks_left, self._ticks_right)
+
     def print_graphs(self):
         return
 
     def _integrate_motors(self, dt):
-        self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) * (1. / 2.)
-        self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) * (1. / 2.)
+        self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) / 2
+        self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) / 2
         self._x += dt * self._dforward * math.cos(self._heading)
         self._y += dt * self._dforward * math.sin(self._heading)
-        self._heading += dt * self._dheading + 2. * math.pi
-        self._heading = math.fmod(self._heading, 2. * math.pi)
+        self._heading += dt * self._dheading + TWO_PI
+        self._heading = math.fmod(self._heading, TWO_PI)
         return
 

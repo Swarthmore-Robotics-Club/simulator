@@ -16,9 +16,11 @@ class AMEE(Robot):
         Robot.__init__(self)
         self._x, self._y = STARTING_LOCATION
         self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE).maze)
-        self.usa = ThePartyL(self.labyrinth, self.set_race_start)
+        self.usa = ThePartyL(self.labyrinth, self.set_race_start, self, STARTING_LOCATION)
         self.xs = []
+        self.determined_xs = []
         self.ys = []
+        self.determined_ys = []
         self.race_start = 0
         return
 
@@ -35,7 +37,9 @@ class AMEE(Robot):
         l_vel, r_vel = self.usa.get_velocities(x, y, heading, dt)
         self.set_right_motor(r_vel)
         self.set_left_motor(l_vel)
+        self.determined_xs.append(self.usa.position[0])
         self.xs.append(x)
+        self.determined_ys.append(self.usa.position[1])
         self.ys.append(y)
         return
 
@@ -43,5 +47,7 @@ class AMEE(Robot):
     def print_graphs(self):
         self.labyrinth.draw_lines(self.xs[:self.race_start], self.ys[:self.race_start], 'lightblue')
         self.labyrinth.draw_lines(self.xs[self.race_start:], self.ys[self.race_start:], 'midnightblue')
+        self.labyrinth.draw_lines(self.determined_xs[:self.race_start], self.determined_ys[:self.race_start], 'salmon')
+        self.labyrinth.draw_lines(self.determined_xs[self.race_start:], self.determined_ys[self.race_start:], 'red')
         self.labyrinth.display()
         return

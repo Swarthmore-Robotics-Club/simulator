@@ -16,10 +16,10 @@ class DFSL():
         return
 
 
-    def add_current_cell(self, current, heading):
+    def add_current_cell(self, determined_current, real_current, heading):
         neighbors = []
-        x, y = current
-        straight, left, right = self.labyrinth.get_sensor_readings(x, y, heading)
+        straight, left, right = self.labyrinth.get_sensor_readings(*real_current, heading)
+        x, y = determined_current
         exact_x = math.floor(x) + .5
         exact_y = math.floor(y) + .5
         if heading < math.pi / 4 or heading > 1.75 * math.pi: # straight ahead is right
@@ -52,24 +52,24 @@ class DFSL():
                 neighbors.append((exact_x - 1, exact_y))
 
         for bor in neighbors:
-            self.graph[current].add(bor)
-            self.graph[bor].add(current)
+            self.graph[determined_current].add(bor)
+            self.graph[bor].add(determined_current)
             if bor not in self.already_visited:
                 self.already_visited.add(bor)
                 self.stack.append(bor)
         return
 
 
-    def get_next_cell(self, x, y, heading):
+    def get_next_cell(self, x, y, real_coords, heading):
         if not self.next_cell: # assume idealized start
-            self.add_current_cell((x, y), heading)
+            self.add_current_cell((x, y), real_coords, heading)
             self.next_cell = self.stack.pop()
         desired_x, desired_y = self.next_cell
         if abs(desired_x - x) > self.acceptable_offset or abs(desired_y - y) > self.acceptable_offset:
             return self.next_cell
         if self.state == 2 and desired_x == self.goal[0] and desired_y == self.goal[1]:
-            raise Exception('We done here', self.graph)
-        self.add_current_cell(self.next_cell, heading)
+            raise Exception('We done here')
+        self.add_current_cell(self.next_cell, real_coords, heading)
         if len(self.stack) == 0:
             if self.state == 0:
                 self.stack.append(self.starting_location)
@@ -79,7 +79,7 @@ class DFSL():
                 self.callback()
                 self.state = 2
             else:
-                raise Exception('We had an empty stack but hadn\'t finished yet', x, y, '\n\n', self.graph)
+                raise Exception('We had an empty stack but hadn\'t finished yet. x={}, y={}, graph=\n\n{}'.format(x, y, self.graph))
         p = self.find_shortest_path(self.next_cell, self.stack[-1])
         if not p:
             raise Exception(self.next_cell, self.stack[-1], self.graph)

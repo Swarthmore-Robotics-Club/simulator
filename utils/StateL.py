@@ -1,9 +1,11 @@
 from enum import Enum
-from PIDLoop import PIDLoop
-from DFSL import DFSL
 import math
+from DFSL import DFSL
+from PIDLoop import PIDLoop
+from robots.Robot import TICKS_PER_REVOLUTION
 
 TWO_PI = math.pi * 2
+
 class BigBrother(Enum):
     NOT_ENOUGH_TAXES = 3
     GREAT_LEAP_FORWARD = 1984
@@ -11,9 +13,15 @@ class BigBrother(Enum):
 
 
 class ThePartyL():
-    def __init__(self, labyrinth, callback):
+    def __init__(self, labyrinth, callback, robot, starting_loc):
+        self.dfs = DFSL(labyrinth, labyrinth.get_goal(), callback)
+        self.robot = robot
         self.state = BigBrother.NOT_ENOUGH_TAXES
-        self.next_cell = None # tuple
+        self.next_cell = tuple()
+        self.angle_ticker = 0
+        self.prev_ticks_left = 0
+        self.prev_ticks_right = 0
+        self.position = (*starting_loc, 0.0) # x, y, heading
 
         # next 5 lines have hardcoded vals that should be played with
         self.angle_pid = PIDLoop(5, 0, 0.1)
@@ -24,19 +32,17 @@ class ThePartyL():
 
         # next 3 lines should be set w/ our real params
         self.wheel_radius = 0.02 # meters
-        self.wheel_base_length = 0.08 # meters
+        self.wheel_base_length = 0.09 # meters
         self.max_vel = 0.3 # m/s
-
-        self.angle_ticker = 0
-        self.vel_ticker = 0
-        self.dfs = DFSL(labyrinth, labyrinth.get_goal(), callback)
         return
 
 
-    def get_velocities(self, x, y, heading, dt):
+    def get_velocities(self, real_x, real_y, heading, dt):
+        x, y = self.position[:2]
         if self.state == BigBrother.NOT_ENOUGH_TAXES:
-            self.next_cell = self.get_next_cell(x, y, heading)
+            self.next_cell = self.get_next_cell(x, y, real_x, real_y, heading)
             self.state = BigBrother.PRAGUE_SPRING
+        self._update_position()
         angle_error = self.get_angle_error(x, y, heading)
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt)
         if self.state == BigBrother.PRAGUE_SPRING:
@@ -57,27 +63,42 @@ class ThePartyL():
         raise Exception('ruh roh raggy')
 
 
+    def _update_position(self):
+        ticks_left, ticks_right = self.robot.read_encoders()
+        diff_ticks_left = ticks_left - self.prev_ticks_left
+        diff_ticks_right = ticks_right - self.prev_ticks_right 
+        self.prev_ticks_left = ticks_left
+        self.prev_ticks_right = ticks_right
+
+        d_left_wheel = TWO_PI * self.wheel_radius * (diff_ticks_left / TICKS_PER_REVOLUTION)
+        d_right_wheel = TWO_PI * self.wheel_radius * (diff_ticks_right / TICKS_PER_REVOLUTION)
+        d_center = (d_left_wheel + d_right_wheel) / 2
+
+        prev_x, prev_y, prev_heading = self.position
+        new_x = prev_x + (d_center * math.cos(prev_heading))
+        new_y = prev_y + (d_center * math.sin(prev_heading))
+        new_heading = prev_heading + ((d_right_wheel - d_left_wheel) / self.wheel_base_length)
+        self.position = (new_x, new_y, new_heading)
+        return
+
+
     def get_angle_error(self, x, y, heading):
         desired_angle = math.atan2(self.next_cell[1] - y, self.next_cell[0] - x)
         diff = desired_angle - heading
-        if abs(diff) <= math.pi:
-            return diff
-        if diff > math.pi:
-            return diff - TWO_PI
-        return diff + TWO_PI
+        return math.atan2(math.sin(diff), math.cos(diff))
 
 
     def should_slow_down(self, x, y):
-        return abs(self.next_cell[0] -x) < self.acceptable_physical_offset and abs(self.next_cell[1] - y) < self.acceptable_physical_offset
+        return abs(self.next_cell[0] - x) < self.acceptable_physical_offset and abs(self.next_cell[1] - y) < self.acceptable_physical_offset
 
 
     def slow_down_comrade(self):
         self.state = BigBrother.NOT_ENOUGH_TAXES
-        return (0,0)
+        return (0, 0)
 
 
-    def get_next_cell(self, x, y, heading):
-        cell = self.dfs.get_next_cell(x, y, heading)
+    def get_next_cell(self, x, y, real_x, real_y, heading):
+        cell = self.dfs.get_next_cell(x, y, (real_x, real_y), heading)
         print('hi we got a new cell mister here it is sire {}'.format(cell))
         return cell
 
