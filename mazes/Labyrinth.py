@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 TWO_PI = 2 * math.pi
 HALF_PI = math.pi / 2
+BIG_DIAMETER = 16 * math.sqrt(2)
 
 class Labyrinth():
     def __init__(self, maze):
@@ -23,7 +24,6 @@ class Labyrinth():
     
     # returns distance to nearest wall from each sensor (w/ 1 being the width of a cell)
     def _get_sensor_ground_truth(self, x1, y1, heading, root):
-        BIG_DIAMETER = 16 * math.sqrt(2)
         x2 = x1 + BIG_DIAMETER * math.cos(heading)
         y2 = y1 + BIG_DIAMETER * math.sin(heading)
         form_for_y = lambda x: y1 + ((y2 - y1) * (x - x1)/(x2 - x1))
@@ -104,21 +104,3 @@ class Labyrinth():
             plt.plot([x, x], [y, y + 1], color='gray')
         return
 
-
-if __name__ == '__main__':
-    from random import seed
-    from MazeGenerator import MazeGenerator
-
-    seed(0)
-    width = 800
-    height = 800
-    cell_width = 50
-    cols = width // cell_width
-    rows = height // cell_width
-    gen = MazeGenerator(rows, cols)
-    wicked = Labyrinth(gen.maze)
-    print(wicked.get_sensor_readings(0.5, 0.5, HALF_PI + .2))
-    xs = [x/10 for x in range(5, 40)]
-    ys = [y/10 for y in range(5, 40)]
-    wicked.draw_lines(xs, ys)
-    wicked.display()
