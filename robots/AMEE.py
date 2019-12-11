@@ -27,13 +27,16 @@ class MacroRobotState(enum.Enum):
     RACING = 102
 
 
+def tp(t, n = 4):
+    return tuple(map(lambda x: round(x, n), t))
+
 class AMEE(Robot):
     def __init__(self):
         Robot.__init__(self)
         self.wheel_radius = 0.02
-        self.encoder_ticks_per_wheel_rev = 225
+        self.encoder_ticks_per_wheel_rev = 2250 # larger ticks/rev == much closer approx. of reality. why?
         self.wheel_base_length = 0.09
-        self.max_vel = 0.3
+        self.max_speed = 0.3
         self._x, self._y, self._heading = STARTING_LOCATION
 
         # for getting velocities
@@ -75,6 +78,7 @@ class AMEE(Robot):
 
         l_vel, r_vel = self._get_velocities(ticks, sensor_readings, dt)
         self._update_position(ticks)
+        print(round(real_heading - self.position[2], 6), round(real_x - self.position[0], 6), round(real_y - self.position[1], 6), tp(self.position, 6), flush=True)
 
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
@@ -113,6 +117,7 @@ class AMEE(Robot):
                     self.macro_state = MacroRobotState.RETURNING_TO_START
             if self.macro_state == MacroRobotState.RETURNING_TO_START:
                 if idealized_coords == STARTING_LOCATION[:2]: # we're back to the start
+                    self._set_race_start()
                     self.macro_state == MacroRobotState.RACING
                 else:
                     p = self.clew.find_shortest_path(idealized_coords, STARTING_LOCATION[:2])
@@ -140,7 +145,7 @@ class AMEE(Robot):
         if self.micro_state == MicroRobotState.FORWARD:
             if self._should_slow_down(x, y):
                 return self._slow_down()
-            vel = self.max_vel / (abs(angular_vel) + 1)**self.power_val
+            vel = self.max_speed / (abs(angular_vel) + 1)**self.power_val
             return get_individual_proportions(vel, angular_vel, self.wheel_radius, self.wheel_base_length)
         raise Exception('Micro state: {}, macro state: {}, position: {}'.format(self.micro_state, self.macro_state, self.position))
 

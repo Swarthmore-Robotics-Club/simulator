@@ -1,5 +1,5 @@
 import math
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 TWO_PI = 2 * math.pi
 HALF_PI = math.pi / 2

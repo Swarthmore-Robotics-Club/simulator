@@ -6,7 +6,7 @@ sys.path.append('utils')
 from AMEE import AMEE
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 robot = AMEE()
