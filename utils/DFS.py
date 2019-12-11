@@ -1,61 +1,53 @@
 from collections import defaultdict
 import math
 
-def tp(t, n = 4):
-    return tuple(map(lambda x: round(x, n), t))
-
-class DFSL():
-    def __init__(self, labyrinth, goal, callback, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
-        self.goal = goal
-        self.labyrinth = labyrinth
-        self.callback = callback
+class DFS():
+    def __init__(self, acceptable_offset=0.1, starting_loc=(0.5, 0.5)):
         self.acceptable_offset = acceptable_offset
-        self.starting_location = starting_loc
+        self.distance_threshold = 1
         self.already_visited = set([starting_loc])
         self.graph = defaultdict(set)
         self.stack = []
-        self.next_cell = None # tuple
-        self.state = 0
-        self.distance_threshold = 1
+        self.next_cell = None
+        self.graph_finished = False
         return
 
 
-    def add_current_cell(self, determined_current, real_current, heading):
+    def _check_current_cell_neighbors(self, current_position, sensor_readings):
+        x, y, heading = current_position
+        straight, left, right = sensor_readings
+        ideal_x = math.floor(x) + .5
+        ideal_y = math.floor(y) + .5
         neighbors = []
-        straight, left, right = self.labyrinth.get_sensor_readings(*real_current, heading)
-        print('sensors: {}, heading: {}'.format(tp((straight, left, right)), tp((heading,))[0]))
-        x, y = determined_current
-        exact_x = math.floor(x) + .5
-        exact_y = math.floor(y) + .5
         if heading < math.pi / 4 or heading > 1.75 * math.pi: # straight ahead is right
             if straight > self.distance_threshold:
-                neighbors.append((exact_x + 1, exact_y))
+                neighbors.append((ideal_x + 1, ideal_y))
             if left > self.distance_threshold:
-                neighbors.append((exact_x, exact_y + 1))
+                neighbors.append((ideal_x, ideal_y + 1))
             if right > self.distance_threshold:
-                neighbors.append((exact_x, exact_y - 1))
+                neighbors.append((ideal_x, ideal_y - 1))
         elif heading < .75 * math.pi: # straight ahead is up
             if straight > self.distance_threshold:
-                neighbors.append((exact_x, exact_y + 1))
+                neighbors.append((ideal_x, ideal_y + 1))
             if left > self.distance_threshold:
-                neighbors.append((exact_x - 1, exact_y))
+                neighbors.append((ideal_x - 1, ideal_y))
             if right > self.distance_threshold:
-                neighbors.append((exact_x + 1, exact_y))
+                neighbors.append((ideal_x + 1, ideal_y))
         elif heading < 1.25 * math.pi: # straight ahead is left
             if straight > self.distance_threshold:
-                neighbors.append((exact_x - 1, exact_y))
+                neighbors.append((ideal_x - 1, ideal_y))
             if left > self.distance_threshold:
-                neighbors.append((exact_x, exact_y - 1))
+                neighbors.append((ideal_x, ideal_y - 1))
             if right > self.distance_threshold:
-                neighbors.append((exact_x, exact_y + 1))
+                neighbors.append((ideal_x, ideal_y + 1))
         else: # straight ahead is down
             if straight > self.distance_threshold:
-                neighbors.append((exact_x, exact_y - 1))
+                neighbors.append((ideal_x, ideal_y - 1))
             if left > self.distance_threshold:
-                neighbors.append((exact_x + 1, exact_y))
+                neighbors.append((ideal_x + 1, ideal_y))
             if right > self.distance_threshold:
-                neighbors.append((exact_x - 1, exact_y))
-
+                neighbors.append((ideal_x - 1, ideal_y))
+        determined_current = (ideal_x, ideal_y)
         for bor in neighbors:
             self.graph[determined_current].add(bor)
             self.graph[bor].add(determined_current)
@@ -65,30 +57,23 @@ class DFSL():
         return
 
 
-    def get_next_cell(self, x, y, real_coords, heading):
-        if not self.next_cell: # assume idealized start
-            self.add_current_cell((x, y), real_coords, heading)
+    def get_next_cell(self, current_position, sensor_readings):
+        if self.graph_finished:
+            return None
+        if not self.next_cell:
+            self._check_current_cell_neighbors(current_position, sensor_readings)
             self.next_cell = self.stack.pop()
         desired_x, desired_y = self.next_cell
+        x, y, heading = current_position
         if abs(desired_x - x) > self.acceptable_offset or abs(desired_y - y) > self.acceptable_offset:
             return self.next_cell
-        if self.state == 2 and desired_x == self.goal[0] and desired_y == self.goal[1]:
-            raise Exception('We done here')
-        self.add_current_cell(self.next_cell, real_coords, heading)
+        self._check_current_cell_neighbors(current_position, sensor_readings)
         if len(self.stack) == 0:
-            print('Stack\'s empty, state is {}'.format(self.state))
-            if self.state == 0:
-                self.stack.append(self.starting_location)
-                self.state = 1
-            elif self.state == 1:
-                self.stack.append(self.goal)
-                self.callback()
-                self.state = 2
-            else:
-                raise Exception('We had an empty stack but hadn\'t finished yet. x={}, y={}, graph=\n\n{}'.format(x, y, self.graph))
+            self.graph_finished = True
+            return None
         p = self.find_shortest_path(self.next_cell, self.stack[-1])
         if not p:
-            raise Exception(self.next_cell, self.stack[-1], self.graph)
+            raise Exception(self.next_cell, self.stack, self.graph)
         p = p[::-1]
         self.stack.extend(p[1:-1])
         self.next_cell = self.stack.pop()
