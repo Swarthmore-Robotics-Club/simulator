@@ -63,11 +63,6 @@ class AMEE(Robot):
         return
 
 
-    def _set_race_start(self):
-        self.race_start = len(self.real_xs)
-        return
-
-
     def loop(self, dt):
         real_x = self.get_x()
         real_y = self.get_y()
@@ -78,7 +73,7 @@ class AMEE(Robot):
 
         l_vel, r_vel = self._get_velocities(ticks, sensor_readings, dt)
         self._update_position(ticks)
-        print(round(real_heading - self.position[2], 6), round(real_x - self.position[0], 6), round(real_y - self.position[1], 6), tp(self.position, 6), flush=True)
+        # print(round(real_heading - self.position[2], 6), round(real_x - self.position[0], 6), round(real_y - self.position[1], 6), tp(self.position, 6), flush=True)
 
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
@@ -117,8 +112,8 @@ class AMEE(Robot):
                     self.macro_state = MacroRobotState.RETURNING_TO_START
             if self.macro_state == MacroRobotState.RETURNING_TO_START:
                 if idealized_coords == STARTING_LOCATION[:2]: # we're back to the start
-                    self._set_race_start()
-                    self.macro_state == MacroRobotState.RACING
+                    self.race_start = len(self.real_xs)
+                    self.macro_state = MacroRobotState.RACING
                 else:
                     p = self.clew.find_shortest_path(idealized_coords, STARTING_LOCATION[:2])
                     if p == None:
