@@ -1,4 +1,3 @@
-import copy
 import enum
 import math
 import random
@@ -7,11 +6,11 @@ from mazes.MazeGenerator import MazeGenerator
 from utils.DFS import DFS
 from utils.model import get_individual_proportions
 from utils.PIDLoop import PIDLoop
+from utils.Position import Position
 from Robot import Robot
 
 LENGTH_OF_MAZE = 16
 STARTING_LOCATION = (0.5, 0.5, 0.0) # x, y, heading
-TWO_PI = math.pi * 2
 
 random.seed(0)
 
@@ -41,7 +40,7 @@ class AMEE(Robot):
 
         # for getting velocities
         self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE).maze)
-        self.position = copy.deepcopy(STARTING_LOCATION)
+        self.position = Position(*STARTING_LOCATION, self.wheel_radius, self.encoder_ticks_per_wheel_rev)
         self.micro_state = MicroRobotState.UNKNOWN
         self.macro_state = MacroRobotState.MAPPING
         self.clew = DFS()
@@ -70,44 +69,26 @@ class AMEE(Robot):
 
         ticks = self.read_encoders()
         sensor_readings = self.labyrinth.get_sensor_readings(real_x, real_y, real_heading)
+        self.position.update(ticks, sensor_readings)
 
         l_vel, r_vel = self._get_velocities(ticks, sensor_readings, dt)
-        self._update_position(ticks)
-        # print(round(real_heading - self.position[2], 6), round(real_x - self.position[0], 6), round(real_y - self.position[1], 6), tp(self.position, 6), flush=True)
+        # print(round(real_heading - self.position.heading, 6), round(real_x - self.position.x, 6), round(real_y - self.position.y, 6), flush=True)
 
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
-        self.determined_xs.append(self.position[0])
+        self.determined_xs.append(self.position.x)
         self.real_xs.append(real_x)
-        self.determined_ys.append(self.position[1])
+        self.determined_ys.append(self.position.y)
         self.real_ys.append(real_y)
-        return
-
-
-    def _update_position(self, ticks):
-        ticks_left, ticks_right = ticks
-        diff_ticks_left = ticks_left - self.previous_ticks[0]
-        diff_ticks_right = ticks_right - self.previous_ticks[1]
-        self.previous_ticks = (ticks_left, ticks_right)
-
-        d_left_wheel = TWO_PI * self.wheel_radius * (diff_ticks_left / self.encoder_ticks_per_wheel_rev)
-        d_right_wheel = TWO_PI * self.wheel_radius * (diff_ticks_right / self.encoder_ticks_per_wheel_rev)
-        d_center = (d_left_wheel + d_right_wheel) / 2
-
-        prev_x, prev_y, prev_heading = self.position
-        new_x = prev_x + (d_center * math.cos(prev_heading))
-        new_y = prev_y + (d_center * math.sin(prev_heading))
-        new_heading = math.fmod(prev_heading + ((d_right_wheel - d_left_wheel) / 2) + TWO_PI, TWO_PI)
-        self.position = (new_x, new_y, new_heading)
         return
     
 
     def _get_velocities(self, ticks, sensor_readings, dt):
-        x, y = self.position[:2]
+        x, y = self.position.x, self.position.y
         if self.micro_state == MicroRobotState.UNKNOWN:
             idealized_coords = math.floor(x) + .5, math.floor(y) + .5
             if self.macro_state == MacroRobotState.MAPPING:
-                self.next_cell = self.clew.get_next_cell(self.position, sensor_readings)
+                self.next_cell = self.clew.get_next_cell(self.position.as_tuple(), sensor_readings)
                 if self.next_cell == None: # we finished mapping the maze, DFS is done
                     self.macro_state = MacroRobotState.RETURNING_TO_START
             if self.macro_state == MacroRobotState.RETURNING_TO_START:
@@ -117,15 +98,15 @@ class AMEE(Robot):
                 else:
                     p = self.clew.find_shortest_path(idealized_coords, STARTING_LOCATION[:2])
                     if p == None:
-                        raise Exception(idealized_coords, self.clew.graph, self.position)
+                        raise Exception(idealized_coords, self.clew.graph, self.position.as_tuple())
                     self.next_cell = p[1] # first item is current cell
             if self.macro_state == MacroRobotState.RACING:
-                p = self.clew.find_shortest_path(idealized_coords, self.labyrinth.get_goal())
+                p = self.clew.find_shortest_path(idealized_coords, self.labyrinth.goal)
                 if p == None:
                     raise Exception('We finished.')
                 self.next_cell = p[1] # first item is current cell
             self.micro_state = MicroRobotState.TURNING
-        angle_error = self._get_angle_error(*self.position)
+        angle_error = self._get_angle_error(*self.position.as_tuple())
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt)
         if self.micro_state == MicroRobotState.TURNING:
             if abs(angle_error) < self.acceptable_angle_error:
@@ -142,7 +123,7 @@ class AMEE(Robot):
                 return self._slow_down()
             vel = self.max_speed / (abs(angular_vel) + 1)**self.power_val
             return get_individual_proportions(vel, angular_vel, self.wheel_radius, self.wheel_base_length)
-        raise Exception('Micro state: {}, macro state: {}, position: {}'.format(self.micro_state, self.macro_state, self.position))
+        raise Exception('Micro state: {}, macro state: {}, position: {}'.format(self.micro_state, self.macro_state, self.position.as_tuple()))
 
 
     def _get_angle_error(self, x, y, heading):
