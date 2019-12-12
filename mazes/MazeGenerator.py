@@ -29,49 +29,35 @@ class MazeCell():
 class MazeGenerator():
     def __init__(self, rows, cols):
         self.maze = [[MazeCell(c, r) for c in range(cols)] for r in range(rows)]
-        self.generate_maze()
+        self._generate_maze()
+        self._set_goal()
 
         for row in self.maze:
             for cell in row:
                 # god forgive me
                 cell.walls[0], cell.walls[2] =  cell.walls[2], cell.walls[0]
-                # cell.walls[1], cell.walls[3] =  cell.walls[3], cell.walls[1]
-
-        self.set_goal()
-
         return
-    def set_goal(self):
-        
-        top_left_x = random.randint(4, len(self.maze[0]) -4)
-        top_left_y = random.randint(4, len(self.maze) -4)
+
+
+    def _set_goal(self):
+        top_left_x = random.randint(4, len(self.maze[0]) - 4)
+        top_left_y = random.randint(4, len(self.maze) - 4)
 
         top_left_cell = self.maze[top_left_y][top_left_x]
-
-        top_right_cell = self.maze[top_left_y][top_left_x+ 1]
-
-        self.remove_walls(top_left_cell, top_right_cell)
-
-        bottom_right_cell = self.maze[top_left_y-1][top_left_x+ 1]
-
-        self.remove_walls(top_right_cell, bottom_right_cell)
-
+        top_right_cell = self.maze[top_left_y][top_left_x+1]
+        bottom_right_cell = self.maze[top_left_y-1][top_left_x+1]
         bottom_left_cell = self.maze[top_left_y-1][top_left_x]
 
-        self.remove_walls(top_right_cell, bottom_left_cell)
-        self.remove_walls(bottom_left_cell, bottom_right_cell)
+        self._remove_walls(top_left_cell, top_right_cell)
+        self._remove_walls(top_right_cell, bottom_right_cell)
+        self._remove_walls(bottom_right_cell, bottom_left_cell)
+        self._remove_walls(bottom_left_cell, top_left_cell)
 
         self.goal = (top_right_cell.x, top_right_cell.y)
+        return
 
 
-
-
-
-        
-        
-
-
-
-    def generate_maze(self):
+    def _generate_maze(self):
         """
         randomly generates a maze using a recursive backtracker as specified by
         https://en.wikipedia.org/wiki/Maze_generation_algorithm#Recursive_backtracker
@@ -86,16 +72,16 @@ class MazeGenerator():
             if curr_cell == None:
                 curr_cell = stack.pop()
             
-            neighbor = self.get_unvisited_neighbor(curr_cell)
+            neighbor = self._get_unvisited_neighbor(curr_cell)
             if neighbor:
                 neighbor.visited = True
                 stack.append(curr_cell) # push curr to stack for backtracking
-                self.remove_walls(curr_cell, neighbor)
+                self._remove_walls(curr_cell, neighbor)
             curr_cell = neighbor
         return
 
 
-    def get_unvisited_neighbor(self, cell):
+    def _get_unvisited_neighbor(self, cell):
         neighbors = []
         x = cell.x
         y = cell.y
@@ -113,7 +99,7 @@ class MazeGenerator():
         return None
 
 
-    def remove_walls(self, cell, neighbor_cell):
+    def _remove_walls(self, cell, neighbor_cell):
         x = cell.x - neighbor_cell.x
         y = cell.y - neighbor_cell.y
         if x == 1: # neighbor is to the left 

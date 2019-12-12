@@ -1,6 +1,5 @@
 import enum
 import math
-import random
 from mazes.Labyrinth import Labyrinth
 from mazes.MazeGenerator import MazeGenerator
 from utils.DFS import DFS
@@ -11,8 +10,6 @@ from Robot import Robot
 
 LENGTH_OF_MAZE = 16
 STARTING_LOCATION = (0.5, 0.5, 0.0) # x, y, heading
-
-random.seed(0)
 
 class MicroRobotState(enum.Enum):
     UNKNOWN = 0
@@ -25,9 +22,6 @@ class MacroRobotState(enum.Enum):
     RETURNING_TO_START = 101
     RACING = 102
 
-
-def tp(t, n = 4):
-    return tuple(map(lambda x: round(x, n), t))
 
 class AMEE(Robot):
     def __init__(self):
@@ -72,10 +66,9 @@ class AMEE(Robot):
         self.position.update(ticks, sensor_readings)
 
         l_vel, r_vel = self._get_velocities(ticks, sensor_readings, dt)
-        # print(round(real_heading - self.position.heading, 6), round(real_x - self.position.x, 6), round(real_y - self.position.y, 6), flush=True)
-
         self.set_left_motor(l_vel)
         self.set_right_motor(r_vel)
+
         self.determined_xs.append(self.position.x)
         self.real_xs.append(real_x)
         self.determined_ys.append(self.position.y)
