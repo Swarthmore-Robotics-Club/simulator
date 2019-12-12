@@ -44,7 +44,7 @@ class Robot():
         return self._heading
 
     def read_encoders(self):
-        return (self._ticks_left, self._ticks_right)
+        return (int(self._ticks_left), int(self._ticks_right))
 
     def print_graphs(self):
         return
@@ -52,10 +52,10 @@ class Robot():
     def _integrate_motors(self, dt):
         left_distance = (self._left_motor_vel) * dt
         left_wheel_revs = left_distance / (self.wheel_radius * TWO_PI)
-        self._ticks_left += int(left_wheel_revs * self.encoder_ticks_per_wheel_rev)
+        self._ticks_left += left_wheel_revs * self.encoder_ticks_per_wheel_rev
         right_distance = (self._right_motor_vel) * dt
         right_wheel_revs = right_distance / (self.wheel_radius * TWO_PI)
-        self._ticks_right += int(right_wheel_revs * self.encoder_ticks_per_wheel_rev)
+        self._ticks_right += right_wheel_revs * self.encoder_ticks_per_wheel_rev
 
         self._dforward = (self._left_motor_k * self._left_motor_vel + self._right_motor_k * self._right_motor_vel) / 2
         self._dheading = (self._right_motor_k * self._right_motor_vel - self._left_motor_k * self._left_motor_vel) / 2

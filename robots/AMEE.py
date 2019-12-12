@@ -33,7 +33,7 @@ class AMEE(Robot):
     def __init__(self):
         Robot.__init__(self)
         self.wheel_radius = 0.02
-        self.encoder_ticks_per_wheel_rev = 2250 # larger ticks/rev == much closer approx. of reality. why?
+        self.encoder_ticks_per_wheel_rev = 225
         self.wheel_base_length = 0.09
         self.max_speed = 0.3
         self._x, self._y, self._heading = STARTING_LOCATION
