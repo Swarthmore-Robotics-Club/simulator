@@ -39,7 +39,7 @@ class AMEE(Robot):
         self._x, self._y, self._heading = STARTING_LOCATION
 
         # for getting velocities
-        self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE).maze)
+        self.labyrinth = Labyrinth(MazeGenerator(LENGTH_OF_MAZE, LENGTH_OF_MAZE))
         self.position = Position(*STARTING_LOCATION, self.wheel_radius, self.encoder_ticks_per_wheel_rev)
         self.micro_state = MicroRobotState.UNKNOWN
         self.macro_state = MacroRobotState.MAPPING
@@ -87,10 +87,12 @@ class AMEE(Robot):
         x, y = self.position.x, self.position.y
         if self.micro_state == MicroRobotState.UNKNOWN:
             idealized_coords = math.floor(x) + .5, math.floor(y) + .5
+
             if self.macro_state == MacroRobotState.MAPPING:
                 self.next_cell = self.clew.get_next_cell(self.position.as_tuple(), sensor_readings)
                 if self.next_cell == None: # we finished mapping the maze, DFS is done
                     self.macro_state = MacroRobotState.RETURNING_TO_START
+
             if self.macro_state == MacroRobotState.RETURNING_TO_START:
                 if idealized_coords == STARTING_LOCATION[:2]: # we're back to the start
                     self.race_start = len(self.real_xs)
@@ -100,6 +102,7 @@ class AMEE(Robot):
                     if p == None:
                         raise Exception(idealized_coords, self.clew.graph, self.position.as_tuple())
                     self.next_cell = p[1] # first item is current cell
+
             if self.macro_state == MacroRobotState.RACING:
                 p = self.clew.find_shortest_path(idealized_coords, self.labyrinth.goal)
                 if p == None:
@@ -108,6 +111,7 @@ class AMEE(Robot):
             self.micro_state = MicroRobotState.TURNING
         angle_error = self._get_angle_error(*self.position.as_tuple())
         angular_vel = self.angle_pid.updateErrorPlus(angle_error, dt)
+
         if self.micro_state == MicroRobotState.TURNING:
             if abs(angle_error) < self.acceptable_angle_error:
                 if self.angle_ticker < self.angle_ticks_needed:
@@ -118,6 +122,7 @@ class AMEE(Robot):
             else:
                 self.angle_ticker = 0
             return get_individual_proportions(0, angular_vel, self.wheel_radius, self.wheel_base_length)
+            
         if self.micro_state == MicroRobotState.FORWARD:
             if self._should_slow_down(x, y):
                 return self._slow_down()

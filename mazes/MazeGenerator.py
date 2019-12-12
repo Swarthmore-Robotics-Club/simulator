@@ -37,8 +37,38 @@ class MazeGenerator():
                 cell.walls[0], cell.walls[2] =  cell.walls[2], cell.walls[0]
                 # cell.walls[1], cell.walls[3] =  cell.walls[3], cell.walls[1]
 
+        self.set_goal()
 
         return
+    def set_goal(self):
+        
+        top_left_x = random.randint(4, len(self.maze[0]) -4)
+        top_left_y = random.randint(4, len(self.maze) -4)
+
+        top_left_cell = self.maze[top_left_y][top_left_x]
+
+        top_right_cell = self.maze[top_left_y][top_left_x+ 1]
+
+        self.remove_walls(top_left_cell, top_right_cell)
+
+        bottom_right_cell = self.maze[top_left_y-1][top_left_x+ 1]
+
+        self.remove_walls(top_right_cell, bottom_right_cell)
+
+        bottom_left_cell = self.maze[top_left_y-1][top_left_x]
+
+        self.remove_walls(top_right_cell, bottom_left_cell)
+        self.remove_walls(bottom_left_cell, bottom_right_cell)
+
+        self.goal = (top_right_cell.x, top_right_cell.y)
+
+
+
+
+
+        
+        
+
 
 
     def generate_maze(self):
