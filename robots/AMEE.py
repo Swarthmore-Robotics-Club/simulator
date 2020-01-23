@@ -66,8 +66,7 @@ class AMEE(Robot):
         self.position.update(ticks, sensor_readings)
 
         l_vel, r_vel = self._get_velocities(ticks, sensor_readings, dt)
-        self.set_left_motor(l_vel)
-        self.set_right_motor(r_vel)
+        
 
         self.determined_xs.append(self.position.x)
         self.real_xs.append(real_x)
@@ -121,7 +120,7 @@ class AMEE(Robot):
                 return self._slow_down()
             vel = self.max_speed / (abs(angular_vel) + 1)**self.power_val
             return get_individual_proportions(vel, angular_vel, self.wheel_radius, self.wheel_base_length)
-        raise Exception('Micro state: {}, macro state: {}, position: {}'.format(self.micro_state, self.macro_state, self.position.as_tuple()))
+        raise Exception(f'Micro state: {self.micro_state}, macro state: {self.macro_state}, position: {self.position.as_tuple()}')
 
 
     def _get_angle_error(self, x, y, heading):
@@ -131,6 +130,7 @@ class AMEE(Robot):
 
 
     def _should_slow_down(self, x, y):
+        # lets check 
         return abs(self.next_cell[0] - x) < self.acceptable_physical_offset and abs(self.next_cell[1] - y) < self.acceptable_physical_offset
 
 
